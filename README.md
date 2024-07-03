@@ -19,11 +19,11 @@ In the `output` directory, there are several subdirectories for each of type of 
 * `output/*/newick/*.tre`: these are extended newick strings with metadata for each node in the tree, including estimates of branch-specific diversification rates, the **change** (i.e the delta) in diversification rates, number of rate shifts, Bayes factors for the support of rate shifts, etc.
 * `output/*/rates/*.csv`: these are `csv` files that essentially have the same information as the newick strings, except that the estimates are given in a comma-separated format (for easier parsing) and the information of the phylogeny is not shown except for the node and edge indices
 * `output/*/jld2/*.jld2`: these are binary files that take up a lot of space (gigabytes). These include some useful information for each analysis, including the speciation and extinction rate categories, the log-likelihood, as well as the large three-dimensional array `N`, where the first index is the branch index, and the second and third indices represent the arrival and departure indices for the rate categories.
-* `output/*/shift_rate_through_time/*.csv`: these is an intermediate storage for estimates instantaneous shift rates within a phylogeny, given as a time series 
+* `output/*/shift_rate_through_time/*.csv`: this is an intermediate storage for estimates of instantaneous shift rates within a phylogeny, given as a time series 
 
 ## Scripts
 
-Most of the scripts are written in the `julia` programming language, however there are also a few R scripts and some bash files for scheduling the analyses on a high-performance computer.
+Most of the scripts are written in the `julia` programming language, however there are also a few R scripts and some bash files for scheduling the analyses on a high-performance computer (HPC).
 
 The prefix for the script name will tell you what analysis the script belongs to. For example, the `empirical_01_inference.jl` file is the first script one should run in the analyses of the empirical datasets. The second script one should run is `empirical_02_shift_through_time.jl`, etc. In an overview, these are the main scripts:
 
@@ -71,7 +71,7 @@ Pkg.add("Measures")
 Pkg.add("Statistics")
 ```
 
-Although not all of these dependencies will be necessary for any one script. The R code dependencies can be installed in the usual way with `install.packages("...")`, except for the `treeio` and `ggtree` packages which need to be installed from github using 
+Although not all of these dependencies will be necessary for any one script. The R code dependencies can be installed in the usual way with `install.packages("...")`, except for the `treeio` and `ggtree` packages which can be installed from github using 
 
 ```R
 install.packages("remotes")
