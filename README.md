@@ -4,7 +4,7 @@ Diversification analyses for large empirical phylogenies done with [Pesto](https
 
 ## Contents
 
-This repository contains several scripts that perform simulations of reconstructed phylogenetic trees, infer branch-specific diversification rates and number of rate shifts using `Pesto`, perform post-processing and produce pdf figures.
+This repository contains several scripts that perform simulations of reconstructed phylogenetic trees, infer branch-specific diversification rates and number of rate shifts using `Pesto`, perform post-processing and produce pdf figures. The analyses provided in the manuscript were performed on an OpenSUSE Leap 15.4 Linux distribution.
 
 ## Organization 
 
