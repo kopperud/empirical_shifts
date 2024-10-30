@@ -14,7 +14,7 @@ n_iters = length(fpaths)
 
 io = open("output/prog_constant_extinction.jl", "w")
 
-prog = Progess(n_iters; desc = "Inference (constant extinction): ", output= io);
+prog = Progress(n_iters; desc = "Inference (constant extinction): ", output= io);
 
 for fpath in fpaths
 
@@ -60,7 +60,6 @@ for fpath in fpaths
     save(fpath, 
         "N", N,
         "lambda", λ,
-        "logl", logl,
         "ntip", ntip,
         "mu", μ,
         "etaml", ηml)
