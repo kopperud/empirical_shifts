@@ -13,10 +13,10 @@ fpaths = Glob.glob("data/simulations/constant_extinction/*.tre")
 
 n_iters = length(fpaths)
 
-io = open("output/prog_constant_extinction.jl", "w")
+io = open("output/prog_constant_extinction2.jl", "w")
 
 completed_jobs = [
-                  split(Base.basename(x), ".")[1] for x in Glob.glob("output/simulations/constant_extinction/jld2/*.jld2", scratch)
+                  split(Base.basename(x), ".")[1] for x in Glob.glob("output/simulations/constant_extinction2/jld2/*.jld2", scratch)
  ]
 
 prog = Progress(n_iters; desc = "Inference (constant extinction): ", output= io);
@@ -33,7 +33,7 @@ for fpath in fpaths
         continue ## skip this job if already completed
     end
     
-    optres, model, n_attempts = optimize_hyperparameters(data; n = 10, n_attempts = 100)
+    optres, model, n_attempts = optimize_hyperparameters(data; n = 10, sd = 0.2, n_attempts = 100)
     ntip = length(data.tiplab)
 
     λ = model.λ
@@ -59,13 +59,13 @@ for fpath in fpaths
     ## save data
     # scratch space
     # /sto/nfsscratch/grp_shoehna/empirical_shifts/output/simulations/constant_extinction
-    fpath = string(scratch, "output/simulations/constant_extinction/newick/", name, ".tre")
+    fpath = string(scratch, "output/simulations/constant_extinction2/newick/", name, ".tre")
     writenewick(fpath, data, rates)
 
-    fpath = string(scratch, "output/simulations/constant_extinction/rates/", name, ".csv")
+    fpath = string(scratch, "output/simulations/constant_extinction2/rates/", name, ".csv")
     CSV.write(fpath, rates)
 
-    fpath = string(scratch, "output/simulations/constant_extinction/jld2/", name, ".jld2")
+    fpath = string(scratch, "output/simulations/constant_extinction2/jld2/", name, ".jld2")
 
     save(fpath, 
         "N", N,
