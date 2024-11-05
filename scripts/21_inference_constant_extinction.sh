@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 #SBATCH --job-name=constant_extinction
-#SBATCH --mail-type=END
+#SBATCH --mail-type=ALL
 #SBATCH --mail-user=b.kopperud@lmu.de
 #SBATCH --mem-per-cpu=2GB
 #SBATCH --output=logs/constant_extinction.log

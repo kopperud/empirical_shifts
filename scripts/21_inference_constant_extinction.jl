@@ -6,6 +6,7 @@ using JLD2
 using ProgressMeter
 using Glob
 
+scratch = "/sto/nfsscratch/grp_shoehna/empirical_shifts/"
 
 fpaths = Glob.glob("data/simulations/constant_extinction/*.tre")
 
@@ -13,6 +14,10 @@ fpaths = Glob.glob("data/simulations/constant_extinction/*.tre")
 n_iters = length(fpaths)
 
 io = open("output/prog_constant_extinction.jl", "w")
+
+completed_jobs = [
+                  split(Base.basename(x), ".")[1] for x in Glob.glob(string(scratch, "output/simulations/constant_extinction/jld2/*.jld2")),
+ ]
 
 prog = Progress(n_iters; desc = "Inference (constant extinction): ", output= io);
 
@@ -24,6 +29,9 @@ for fpath in fpaths
 
     name = split(Base.basename(fpath), ".")[1]
 
+    if name in completed_jobs
+        continue ## skip this job if already completed
+    end
     
     optres, model, n_attempts = optimize_hyperparameters(data; n = 10, n_attempts = 100)
     ntip = length(data.tiplab)
@@ -43,19 +51,21 @@ for fpath in fpaths
     rates[!,"nshift"] = nshift
 
 
-    bf = posterior_prior_shift_odds(model,data)
-    append!(bf, NaN)
-    rates[!,"shift_bf"] = bf
-    rates[!,"shift_bf_log"] = log10.(bf)
+    #bf = posterior_prior_shift_odds(model,data)
+    #append!(bf, NaN)
+    #rates[!,"shift_bf"] = bf
+    #rates[!,"shift_bf_log"] = log10.(bf)
 
     ## save data
-    fpath = string("output/simulations/constant_extinction/newick/", name, ".tre")
+    # scratch space
+    # /sto/nfsscratch/grp_shoehna/empirical_shifts/output/simulations/constant_extinction
+    fpath = string(scatch, "output/simulations/constant_extinction/newick/", name, ".tre")
     writenewick(fpath, data, rates)
 
-    fpath = string("output/simulations/constant_extinction/rates/", name, ".csv")
+    fpath = string(scatch, "output/simulations/constant_extinction/rates/", name, ".csv")
     CSV.write(fpath, rates)
 
-    fpath = string("output/simulations/constant_extinction/jld2/", name, ".jld2")
+    fpath = string(scatch, "output/simulations/constant_extinction/jld2/", name, ".jld2")
 
     save(fpath, 
         "N", N,
