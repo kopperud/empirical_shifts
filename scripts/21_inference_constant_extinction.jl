@@ -16,7 +16,7 @@ n_iters = length(fpaths)
 io = open("output/prog_constant_extinction.jl", "w")
 
 completed_jobs = [
-                  split(Base.basename(x), ".")[1] for x in Glob.glob(string(scratch, "output/simulations/constant_extinction/jld2/*.jld2")),
+                  split(Base.basename(x), ".")[1] for x in Glob.glob("output/simulations/constant_extinction/jld2/*.jld2", scratch)
  ]
 
 prog = Progress(n_iters; desc = "Inference (constant extinction): ", output= io);
@@ -59,13 +59,13 @@ for fpath in fpaths
     ## save data
     # scratch space
     # /sto/nfsscratch/grp_shoehna/empirical_shifts/output/simulations/constant_extinction
-    fpath = string(scatch, "output/simulations/constant_extinction/newick/", name, ".tre")
+    fpath = string(scratch, "output/simulations/constant_extinction/newick/", name, ".tre")
     writenewick(fpath, data, rates)
 
-    fpath = string(scatch, "output/simulations/constant_extinction/rates/", name, ".csv")
+    fpath = string(scratch, "output/simulations/constant_extinction/rates/", name, ".csv")
     CSV.write(fpath, rates)
 
-    fpath = string(scatch, "output/simulations/constant_extinction/jld2/", name, ".jld2")
+    fpath = string(scratch, "output/simulations/constant_extinction/jld2/", name, ".jld2")
 
     save(fpath, 
         "N", N,
