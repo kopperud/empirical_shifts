@@ -1,14 +1,14 @@
 #!/usr/bin/env sh
-#SBATCH --job-name=constant_extinction
+#SBATCH --job-name=constant_extinction2
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=b.kopperud@lmu.de
 #SBATCH --mem-per-cpu=2GB
-#SBATCH --output=logs/constant_extinction.log
-#SBATCH --error=logs/constant_extinction.err
+#SBATCH --output=logs/constant_extinction2.log
+#SBATCH --error=logs/constant_extinction2.err
 #SBATCH --qos=low_prio_res
 #SBATCH --ntasks=1
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=200
+#SBATCH --cpus-per-task=100
 #SBATCH --partition=krypton
 
 #module load R/4.2.3 gnu openblas
