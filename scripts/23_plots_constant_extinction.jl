@@ -4,14 +4,15 @@ using JLD2
 using Glob
 using DataFrames
 
-fpaths = Glob.glob("output/simulations/constant_extinction/jld2/*.jld2")
+fpaths = []
 
 
-N = sum(N1, dims = 1)[1,:,:]
-
+push!(fpaths, Glob.glob("output/simulations/constant_extinction/jld2/*.jld2"))
+push!(fpaths, Glob.glob("output/simulations/constant_extinction2/jld2/*.jld2"))
+push!(fpaths, Glob.glob("output/simulations/constant_speciation/jld2/*.jld2"))
+push!(fpaths, Glob.glob("output/simulations/constant_speciation2/jld2/*.jld2"))
 
 function compute_ratios(N, model)
-
     Nmatrix = sum(N, dims = 1)[1,:,:]
     nbins = 14
 
@@ -53,47 +54,92 @@ function make_model(d::Dict)
 end
 
 
-ratios = zeros(length(fpaths), 3)
+ratios = zeros(4, length(fpaths), 3)
 
 using ProgressMeter
 
-ntips = Int64[]
-@showprogress for (i, fpath) in enumerate(fpaths)
-    x = load(fpath)
-    model = make_model(x)
+ntips = Vector{Int64}[]
 
-    r = compute_ratios(x["N"], model, "")
-    ratios[i,:] = r
-    push!(ntips, x["ntip"])
+prog = Progress(reduce(+, map(length, fpaths)));
+
+dfs = DataFrame[]
+
+for j in 1:4
+    paths = fpaths[j]
+    for path in paths
+        x = load(path)
+        iter = split(Base.basename(path), ".")[1]
+        model = make_model(x)
+        
+        r = compute_ratios(x["N"], model)
+        df = DataFrame(
+            "ratio μ" => r[1],
+            "ratio λ" => r[2],
+            "ratio μ+λ" => r[3],
+            "study" => j,
+            "ntip" => x["ntip"],
+            "iter" => iter,
+            )
+        push!(dfs, df)
+
+        next!(prog)
+    end
 end
+finish!(prog)
+
+dfx = vcat(dfs...)
+
 
 using CairoMakie
 using Statistics
 
 
 
-[mean(ratios[:,i]) for i in 1:3]
 
-fig = Figure(size = (400, 400));
+fig = Figure(size = (700, 700));
 
 titles = [
     round(mean(ratios[:,i]); digits =  4) for i in 1:3
 ]
 
+## iter over models
+axs = []
+for j in 1:4
+    ## iter over rows
+    df = filter(:study => x -> x == j, dfx)
+    ntrees = size(df)[1]
+     
+    ax1 = Axis(fig[1,j], xlabel = "number of tips", xticklabelrotation = π/2, title = "$(ntrees) trees")
+    ax2 = Axis(fig[2,j], xlabel = L"\hat{N}_\mu/\hat{N}", xticklabelrotation = π/2)#, title = "r = $(titles[1])")
+    ax3 = Axis(fig[3,j], xlabel = L"\hat{N}_\lambda/\hat{N}", xticklabelrotation = π/2)#, title = "r = $(titles[2])")
+    ax4 = Axis(fig[4,j], xlabel = L"\hat{N}_{\lambda+\mu}/\hat{N}")#", title = "r = $(titles[3])")
 
-ax1 = Axis(fig[1,1], xlabel = "number of tips", xticklabelrotation = π/2, title = "$(length(fpaths)) trees")
-ax2 = Axis(fig[1,2], xlabel = "ratio µ", title = "r = $(titles[1])")
-ax3 = Axis(fig[2,1], xlabel = "ratio λ", title = "r = $(titles[2])")
-ax4 = Axis(fig[2,2], xlabel = "ratio µ+λ", title = "r = $(titles[3])")
+    if ntrees > 0
 
+        hist!(ax1, df[!,:ntip])  
+        hist!(ax2, df[!,"ratio μ"], bins = 10, color = "orange")
+        hist!(ax3, df[!,"ratio λ"], bins = 10, color = "blue")
+        hist!(ax4, df[!,"ratio μ+λ"], bins = 10, color = "gray")
+        for ax in (ax2, ax3, ax4)
+            xlims!(ax, (0.0, 1.0))
+            #push!(axs, ax)
+        end
+    end
+end
 
-hist!(ax1, ntips)  
-hist!(ax2, ratios[:,1], bins = 10, color = "orange")
-hist!(ax3, ratios[:,2], bins = 10, color = "blue")
-hist!(ax4, ratios[:,3], bins = 10, color = "gray")
+Label(fig[-1,1:2], "constant extinction (true model)")
+Label(fig[-1,3:4], "constant speciation (true model)")
 
-linkxaxes!(ax2, ax3, ax4)
+Label(fig[0,1], "inference sd=0.587")
+Label(fig[0,2], "inference sd=0.2")
+Label(fig[0,3], "inference sd=0.587")
+Label(fig[0,4], "inference sd=0.2")
+
+for j in 1:4
+    colsize!(fig.layout, j, Relative(1/4))
+end
 
 fig
 
-save("figures/constant_extinction_preliminary.pdf", fig)
+
+save("figures/partial_constant_models_ratios.pdf", fig)
