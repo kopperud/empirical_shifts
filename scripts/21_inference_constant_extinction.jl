@@ -26,6 +26,7 @@ for fpath in fpaths
     phy = readtree(fpath)
     sampling_probability = 1.0
     data = SSEdata(phy, sampling_probability)
+    ntip = length(data.tiplab)
 
     name = split(Base.basename(fpath), ".")[1]
 
@@ -35,6 +36,38 @@ for fpath in fpaths
 
     try
         optres, model, n_attempts = optimize_hyperparameters(data; n = 10, sd = 0.2, n_attempts = 100)
+
+        λ = model.λ
+        μ = model.μ
+        ηml = model.η
+
+        Ds, Fs = backwards_forwards_pass(model, data);
+        Ss = ancestral_state_probabilities(data, Ds, Fs);
+
+        rates = tree_rates(data, model, Fs, Ss);
+        N = state_shifts(model, data, Ds, Fs);
+
+        nshift = sum(N, dims = (2,3))[:,1,1];
+        append!(nshift, 0.0)
+        rates[!,"nshift"] = nshift
+
+        ## save data
+        fpath = string(scratch, "output/simulations/constant_extinction2/newick/", name, ".tre")
+        writenewick(fpath, data, rates)
+
+        fpath = string(scratch, "output/simulations/constant_extinction2/rates/", name, ".csv")
+        CSV.write(fpath, rates)
+
+        fpath = string(scratch, "output/simulations/constant_extinction2/jld2/", name, ".jld2")
+
+        save(fpath, 
+            "N", N,
+            "lambda", λ,
+            "ntip", ntip,
+            "mu", μ,
+            "etaml", ηml)
+
+
     catch e
         if isa(e, Pesto.ConvergenceException)
             continue
@@ -42,45 +75,7 @@ for fpath in fpaths
             rethrow(e)
         end
     end
-    ntip = length(data.tiplab)
 
-    λ = model.λ
-    μ = model.μ
-    ηml = model.η
-
-    Ds, Fs = backwards_forwards_pass(model, data);
-    Ss = ancestral_state_probabilities(data, Ds, Fs);
-
-    rates = tree_rates(data, model, Fs, Ss);
-    N = state_shifts(model, data, Ds, Fs);
-
-    nshift = sum(N, dims = (2,3))[:,1,1];
-    append!(nshift, 0.0)
-    rates[!,"nshift"] = nshift
-
-
-    #bf = posterior_prior_shift_odds(model,data)
-    #append!(bf, NaN)
-    #rates[!,"shift_bf"] = bf
-    #rates[!,"shift_bf_log"] = log10.(bf)
-
-    ## save data
-    # scratch space
-    # /sto/nfsscratch/grp_shoehna/empirical_shifts/output/simulations/constant_extinction
-    fpath = string(scratch, "output/simulations/constant_extinction2/newick/", name, ".tre")
-    writenewick(fpath, data, rates)
-
-    fpath = string(scratch, "output/simulations/constant_extinction2/rates/", name, ".csv")
-    CSV.write(fpath, rates)
-
-    fpath = string(scratch, "output/simulations/constant_extinction2/jld2/", name, ".jld2")
-
-    save(fpath, 
-        "N", N,
-        "lambda", λ,
-        "ntip", ntip,
-        "mu", μ,
-        "etaml", ηml)
     next!(prog)
 end
 finish!(prog)
