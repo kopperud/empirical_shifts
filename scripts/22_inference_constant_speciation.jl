@@ -32,8 +32,16 @@ for fpath in fpaths
     if name in completed_jobs
         continue ## skip this job if already completed
     end
-    
-    optres, model, n_attempts = optimize_hyperparameters(data; n = 10, sd = 0.2, n_attempts = 100)
+ 
+    try
+        optres, model, n_attempts = optimize_hyperparameters(data; n = 10, sd = 0.2, n_attempts = 100)
+    catch e
+        if isa(e, Pesto.ConvergenceException)
+            continue
+        else
+            rethrow(e)
+        end
+    end
     ntip = length(data.tiplab)
 
     λ = model.λ
