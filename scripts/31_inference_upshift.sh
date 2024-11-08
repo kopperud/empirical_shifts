@@ -1,10 +1,10 @@
 #!/usr/bin/env sh
-#SBATCH --job-name=backbone
+#SBATCH --job-name=upshift
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=b.kopperud@lmu.de
 #SBATCH --mem=200GB
-#SBATCH --output=logs/backbone.log
-#SBATCH --error=logs/backbone.err
+#SBATCH --output=logs/upshift.log
+#SBATCH --error=logs/upshift.err
 #SBATCH --qos=normal_prio
 #SBATCH --ntasks=1
 #SBATCH --nodes=1
@@ -21,4 +21,4 @@ export R_HOME="/opt/cres/lib/hpc/gcc7/R/4.2.3/lib64/R"
 export LD_LIBRARY_PATH="/opt/cres/lib/hpc/gcc7/R/4.2.3/lib64/R/lib"
 echo ${SLURM_CPUS_PER_TASK} > output/ntasks.txt
 
-julia --threads ${SLURM_CPUS_PER_TASK} scripts/30_inference_backbone.jl > output/screen.txt
+julia --threads ${SLURM_CPUS_PER_TASK} scripts/31_inference_upshift.jl > output/screen.txt
