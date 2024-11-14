@@ -56,6 +56,17 @@ for fpath in fpaths
 
         mag = magnitude(model, data, N);
 
+        ## calculate S root
+        root_index = length(data.tiplab)+1 
+        root_children = findall(data.edges[:,1] .== root_index)
+        left, right = root_children
+        D_root = Ds[left].u[end] .* Ds[left].u[end] .* λ
+        S_root = D_root ./ sum(D_root)
+
+        netdiv_root = sum((λ .- μ) .* S_root)
+        netdiv_tips = tip_rates(model, data, Ds, Fs)[!,:netdiv]
+
+
         ## save data
         fpath = string(scratch, "output/simulations/single_shift_grafts/downshift/newick/", name, ".tre")
         writenewick(fpath, data, rates)
@@ -73,6 +84,8 @@ for fpath in fpaths
             "etaml", ηml,
             "magnitude", mag,
             "treelength", tl,
+            "netdiv_root", netdiv_root,
+            "netdiv_tips", netdiv_tips,
            )
 
     catch e
