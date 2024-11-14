@@ -2,13 +2,13 @@
 #SBATCH --job-name=backbone
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=b.kopperud@lmu.de
-#SBATCH --mem=200GB
+#SBATCH --mem=100GB
 #SBATCH --output=logs/backbone.log
 #SBATCH --error=logs/backbone.err
 #SBATCH --qos=normal_prio
 #SBATCH --ntasks=1
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=9
 #SBATCH --partition=lemmium
 
 #module load R/4.2.3 gnu openblas

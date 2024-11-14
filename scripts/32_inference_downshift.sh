@@ -2,13 +2,13 @@
 #SBATCH --job-name=downshift
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=b.kopperud@lmu.de
-#SBATCH --mem=160GB
+#SBATCH --mem=100GB
 #SBATCH --output=logs/downshift.log
 #SBATCH --error=logs/downshift.err
 #SBATCH --qos=normal_prio
 #SBATCH --ntasks=1
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=12
+#SBATCH --cpus-per-task=8
 #SBATCH --partition=lemmium
 
 #module load R/4.2.3 gnu openblas
