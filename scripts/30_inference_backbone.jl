@@ -27,6 +27,7 @@ for fpath in fpaths
     sampling_probability = 1.0
     data = SSEdata(phy, sampling_probability)
     ntip = length(data.tiplab)
+    tl = sum(data.branch_lengths)
 
     name = split(Base.basename(fpath), ".")[1]
 
@@ -70,7 +71,9 @@ for fpath in fpaths
             "ntip", ntip,
             "mu", μ,
             "etaml", ηml,
-            "magnitude", mag)
+            "magnitude", mag,
+            "treelength", tl,
+           )
 
     catch e
         if isa(e, Pesto.ConvergenceException)
