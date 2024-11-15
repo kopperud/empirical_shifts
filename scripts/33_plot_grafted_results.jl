@@ -94,12 +94,90 @@ x = load(fpaths[2][1])
 
 1 / x["treelength"]
 
+#############################################
+##
+##      compute mean(netdiv_tips) - netdiv_root
+##
+#############################################
 
-fpaths_rates = [
-    glob("output/simulations/single_shift_grafts/backbone/rates/*.csv"),
-    glob("output/simulations/single_shift_grafts/upshift/rates/*.csv"),
-    glob("output/simulations/single_shift_grafts/downshift/rates/*.csv"),
+fpaths2 = [
+    glob("output/simulations/single_shift_grafts2/backbone/jld2/*.jld2"),
+    glob("output/simulations/single_shift_grafts2/upshift/jld2/*.jld2"),
+    glob("output/simulations/single_shift_grafts2/downshift/jld2/*.jld2"),
 ]
+
+using RCall
+
+R"""
+library(ape)
+fp_up <- Sys.glob("data/simulations/single_shift_grafts/upshift/*.tre")
+tr_up <- lapply(fp, read.tree)
+
+fp_down <- Sys.glob("data/simulations/single_shift_grafts/downshift/*.tre")
+tr_down <- lapply(fp, read.tree)
+
+netdiv_root <- 0.09
+netdiv_upshift <- 0.29
+netdiv_downshift <- -0.11
+
+foo_up <- function(tr){
+    ntip <- length(tr$tip.label)
+    n_shifted <- sum(grepl("x", tr$tip.label))
+    netdiv_tip <- (n_shifted * netdiv_upshift + (ntip - n_shifted) * netdiv_root) / ntip
+    true_delta_netdiv <- netdiv_tip - netdiv_root
+    return(true_delta_netdiv)
+}
+
+foo_down <- function(tr){
+    ntip <- length(tr$tip.label)
+    n_shifted <- sum(grepl("x", tr$tip.label))
+    netdiv_tip <- (n_shifted * netdiv_downshift + (ntip - n_shifted) * netdiv_root) / ntip
+    true_delta_netdiv <- netdiv_tip - netdiv_root
+    return(true_delta_netdiv)
+}
+
+delta_netdivs_upshift <- sapply(tr_up, foo_up)
+delta_netdivs_downshift <- sapply(tr_down, foo_down)
+"""
+@rget delta_netdivs_upshift 
+@rget delta_netdivs_downshift 
+
+xs = [[load(fpath) for fpath in fpaths2[i]] for i in 1:3]
+
+xs[1][1]
+
+delta_netdiv(x::Dict{String,Any}) = mean(x["netdiv_tips"]) - x["netdiv_root"]
+Δnetdivs = [[delta_netdiv(x) for x in xs[i]] for i in 1:3]
+
+using Printf
+
+fig2 = Figure(size = (400, 500))
+mean_backbone = round(mean(Δnetdivs[1]); digits = 4)
+mean_upshift = round(mean(Δnetdivs[2]); digits = 4)
+mean_downshift = round(mean(Δnetdivs[3]); digits = 4)
+ax1 = Axis(fig2[1,1], title = "backbone (mean = $mean_backbone)")
+ax2 = Axis(fig2[2,1], title = "upshift (mean = $mean_upshift)")
+ax3 = Axis(fig2[3,1], title = "downshift (mean = $mean_downshift)", 
+    xlabel = L"\frac{1}{n}\left (\sum_{m=1}^n r_m(t_0) \right ) - r_\text{root}")
+axs = [ax1, ax2, ax3]
+for (i, ax) in enumerate(axs)
+    Δnetdiv = Δnetdivs[i] 
+    hist!(ax, Δnetdiv, bins = 25, label = "inferred", color = :black, normalization = :pdf)
+end
+hist!(axs[2], delta_netdivs_upshift, bins = 25, label = "true", color = (:orange, 0.7), normalization = :pdf)
+hist!(axs[3], delta_netdivs_downshift, bins = 25, label = "true", color = (:orange, 0.7), normalization = :pdf)
+linkxaxes!(axs...)
+axislegend(axs[3])
+
+fig2
+
+save("figures/")
+
+
+
+
+
+
 
 using CSV
 using DataFrames
