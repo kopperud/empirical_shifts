@@ -116,3 +116,10 @@ for (i in seq_along(upshift_trees)){
 }
 
 
+## some quick plots
+fpaths <- Sys.glob("data/simulations/single_shift_grafts/*/119.tre")
+tr <- lapply(fpaths, read.tree)
+par(mfrow=c(1,3))
+plot.phylo(tr[[1]], show.tip.label = F, main = paste0("backbone (n=", length(tr[[1]]$tip.label), ")"))
+plot.phylo(tr[[2]], show.tip.label = F, main = paste0("downshift (n=", length(tr[[2]]$tip.label), ")"))
+plot.phylo(tr[[3]], show.tip.label = F, main = paste0("upshift (n=", length(tr[[3]]$tip.label), ")"))
