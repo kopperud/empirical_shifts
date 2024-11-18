@@ -46,7 +46,7 @@ for fpath in fpaths
 
         rates = birth_death_shift(model, data);
         shift_bf = rates[1:end-1,:shift_bf]
-        is_significant = findall(shift_bf .!= 0)
+        is_significant = findall(shift_bf .> 10.0)
 
         N = state_shifts(model, data, Ds, Fs);
         N = N[is_significant,:,:];
