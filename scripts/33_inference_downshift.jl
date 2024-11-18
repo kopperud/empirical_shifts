@@ -8,7 +8,7 @@ using Glob
 
 scratch = "/sto/nfsscratch/grp_shoehna/empirical_shifts/"
 
-fpaths = Glob.glob("data/simulations/single_shift_grafts/downshift/*.tre")
+fpaths = Glob.glob("data/simulations/grafts/downshift/*.tre")
 
 
 n_iters = length(fpaths)
@@ -16,13 +16,12 @@ n_iters = length(fpaths)
 io = open("output/prog_downshift.txt", "w")
 
 completed_jobs = [
-                  split(Base.basename(x), ".")[1] for x in Glob.glob("output/simulations/single_shift_grafts/downshift/*.jld2", scratch)
+                  split(Base.basename(x), ".")[1] for x in Glob.glob("output/simulations/grafts/downshift/jld2/*.jld2", scratch)
  ]
 
 prog = Progress(n_iters; desc = "Inference (downshift): ", output= io);
 
 for fpath in fpaths
-
     phy = readtree(fpath)
     sampling_probability = 1.0
     data = SSEdata(phy, sampling_probability)
@@ -45,16 +44,13 @@ for fpath in fpaths
         Ds, Fs = backwards_forwards_pass(model, data);
         Ss = ancestral_state_probabilities(data, Ds, Fs);
 
-        rates = tree_rates(data, model, Fs, Ss);
+        rates = birth_death_shift(data, model);
+        shift_bf = rates[1:end-1,:shift_bf]
+        is_significant = findall(shift_bf .!= 0)
+
         N = state_shifts(model, data, Ds, Fs);
+        N = N[is_significant,:,:];
 
-        nshift = sum(N, dims = (2,3))[:,1,1];
-        append!(nshift, 0.0)
-        rates[!,"nshift"] = nshift
-
-        Nsum = sum(N, dims = 1)[1,:,:]
-
-        mag = magnitude(model, data, N);
 
         ## calculate S root
         root_index = length(data.tiplab)+1 
@@ -68,16 +64,16 @@ for fpath in fpaths
 
 
         ## save data
-        fpath = string(scratch, "output/simulations/single_shift_grafts/downshift/newick/", name, ".tre")
+        fpath = string(scratch, "output/simulations/grafts/downshift/newick/", name, ".tre")
         writenewick(fpath, data, rates)
 
-        fpath = string(scratch, "output/simulations/single_shift_grafts/downshift/rates/", name, ".csv")
+        fpath = string(scratch, "output/simulations/grafts/downshift/rates/", name, ".csv")
         CSV.write(fpath, rates)
 
-        fpath = string(scratch, "output/simulations/single_shift_grafts/downshift/jld2/", name, ".jld2")
+        fpath = string(scratch, "output/simulations/grafts/downshift/jld2/", name, ".jld2")
 
         save(fpath, 
-            "N", Nsum,
+            "N", N,
             "lambda", λ,
             "ntip", ntip,
             "mu", μ,

@@ -1,9 +1,9 @@
 library(TESS)
 
 ## find all active lineages at time t
+## and draw a node index at random (uniform)
 draw_random_node <- function(time1, phy){
   nd <- node.depth.edgelength(phy)
-  #nd <- max(nd) - nd
   is_active <- apply(phy$edge, 1, function(x) (nd[x[1]] < time1) && (nd[x[2]] > time1))
   active_branch_indices <- which(is_active)
 
@@ -53,7 +53,7 @@ graft_tree <- function(old_tree, young_tree, break_time){
   return(hybrid_tree)
 }
 
-## up-shift trees
+## simulate backbone trees trees
 age <- 60
 set.seed(123)
 
@@ -61,36 +61,40 @@ tr <- tess.sim.age(n = 500, age = age, lambda = 0.3, mu = 0.21)
 
 backbone_trees <- list()
 j = 1; for (i in seq_along(tr)){
-  if (length(tr[[i]]$tip.label) > 99){
+  if (length(tr[[i]]$tip.label) > 99){ ## discard too small trees
     backbone_trees[[j]] = tr[[i]]
     j = j + 1
   }
 }
 
-## trees to be grafted on
-break_time <- 2*age/3
-
-high_div_trees <- tess.sim.age(n = 500, age = 15, lambda = 0.5, mu = 0.21)
+## simulate high-diversity trees for a short time 
+high_div_lambda_trees <- tess.sim.age(n = 500, age = 15, lambda = 0.5, mu = 0.21)
+high_div_mu_trees <- tess.sim.age(n = 500, age = 15, lambda = 0.3, mu = 0.01)
+## simulate low-diversity trees for a longer time (so we might have a chance of recovering them)
 low_div_trees <- tess.sim.age(n = 500, age = 40, lambda = 0.1, mu = 0.21)
 
 
-upshift_trees <- list()
+upshift_lambda_trees <- list()
+upshift_mu_trees <- list()
 downshift_trees <- list()
+
 for (i in 1:350){
-  print(i)
-  upshift_trees[[i]] <- graft_tree(backbone_trees[[i]], high_div_trees[[i]], 45)
+  upshift_lambda_trees[[i]] <- graft_tree(backbone_trees[[i]], high_div_lambda_trees[[i]], 45)
+  upshift_mu_trees[[i]] <- graft_tree(backbone_trees[[i]], high_div_mu_trees[[i]], 45)
   downshift_trees[[i]] <- graft_tree(backbone_trees[[i]], low_div_trees[[i]], 20)
 }
 
-plot(upshift_trees[[3]])
-plot(downshift_trees[[21]])
+par(mfrow=c(1,2))
+plot.phylo(upshift_lambda_trees[[3]], show.tip.label = FALSE)
+plot(upshift_mu_trees[[3]], show.tip.label = FALSE)
 
 ntip1 <- sapply(backbone_trees, function(x) length(x$tip.label))
-ntip2 <- sapply(upshift_trees, function(x) length(x$tip.label))
-ntip3 <- sapply(downshift_trees, function(x) length(x$tip.label))
+ntip2 <- sapply(upshift_lambda_trees, function(x) length(x$tip.label))
+ntip3 <- sapply(upshift_mu_trees, function(x) length(x$tip.label))
+ntip4 <- sapply(downshift_trees, function(x) length(x$tip.label))
 
-xmax <- max(ntip1, ntip2, ntip3)
-xmin <- min(ntip1, ntip2, ntip3)
+xmax <- max(ntip1, ntip2, ntip3, ntip4)
+xmin <- min(ntip1, ntip2, ntip3, ntip4)
 xlim = c(xmin, xmax)
 
 n = 20
@@ -104,14 +108,18 @@ par(mfrow=c(1,1))
 
 
 ## save to file
-for (i in seq_along(upshift_trees)){
-  fpath <- paste0("data/simulations/single_shift_grafts/backbone/", i, ".tre")
+#for (i in seq_along(upshift_trees)){
+for (i in 1:10){
+  fpath <- paste0("data/simulations/grafts/backbone/", i, ".tre")
   write.tree(backbone_trees[[i]], fpath) 
   
-  fpath <- paste0("data/simulations/single_shift_grafts/upshift/", i, ".tre")
-  write.tree(upshift_trees[[i]], fpath) 
+  fpath <- paste0("data/simulations/grafts/upshift_lambda/", i, ".tre")
+  write.tree(upshift_lambda_trees[[i]], fpath) 
   
-  fpath <- paste0("data/simulations/single_shift_grafts/downshift/", i, ".tre")
+  fpath <- paste0("data/simulations/grafts/upshift_mu/", i, ".tre")
+  write.tree(upshift_mu_trees[[i]], fpath) 
+  
+  fpath <- paste0("data/simulations/grafts/downshift/", i, ".tre")
   write.tree(downshift_trees[[i]], fpath) 
 }
 

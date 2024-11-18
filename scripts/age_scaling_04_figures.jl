@@ -186,7 +186,7 @@ dfx = innerjoin(df, df_true, on = [:tree_index,:height]; makeunique=true)
 error = dfx[!,:N_per_time] .- dfx[!,:N_per_time_true]
 
 
-fig4 = Figure(size = (500, 250))
+fig4 = Figure(size = (500, 500))
 
 heights = [30, 40, 50, 60, 70, 80, 90, 100]
 xt = heights
@@ -198,6 +198,18 @@ ax2 = Axis(
     xgridvisible = false,
     ygridvisible = false,
     #yscale = log10,
+    title = L"\text{a) absolute error}",
+    ylabel = L"\text{estimation error (}\hat{N} - N_\text{true})",
+)
+ax3 = Axis(
+    fig4[2,1],
+    xticks = xt,
+    topspinevisible = false,
+    rightspinevisible = false,
+    xgridvisible = false,
+    ygridvisible = false,
+    #yscale = log10,
+    title = L"\text{b) normalized error}",
     xlabel = L"\text{tree height (Ma)}",
     ylabel = L"\text{estimation error (}\frac{\hat{N} - N_\text{true}}{t})",
 )
@@ -206,15 +218,34 @@ ax2 = Axis(
 for (i, height) in enumerate(heights)
     this_df = filter(:height => h -> h == height, dfx)
 
-    error = this_df[!,:N_per_time] .- this_df[!,:N_per_time_true]
-    #error = this_df[!,:N_total] .- this_df[!,:N_total_true]
-
+    #error = this_df[!,:N_per_time] .- this_df[!,:N_per_time_true]
+    error = this_df[!,:N_total] .- this_df[!,:N_total_true]
     hist!(ax2, error, color = (:black, 0.5), direction = :x, scale_to = 8, offset = height, bins = 20, label = "simulated trees")
+
+    #error_normalized = this_df[!,:N_total] .- this_df[!,:N_total_true]
+    error_normalized = this_df[!,:N_per_time] .- this_df[!,:N_per_time_true]
+    #error_normalized = (this_df[!,:N_total] .- this_df[!,:N_total_true]) ./ this_df[!,:N_total]
+    hist!(ax3, error_normalized, color = (:black, 0.5), direction = :x, scale_to = 8, offset = height, bins = 20, label = "simulated trees")
 end
-lines!(ax2, [28, 108], [0.0, 0.0], linestyle = :dash, color = :red, label = "zero error")
-axislegend(ax2, unique = true)
+for ax in (ax2, ax3)
+    lines!(ax, [28, 108], [0.0, 0.0], linestyle = :dash, color = :red, label = "zero error")
+end
+axislegend(ax3, unique = true)
 fig4
+
 save("figures/age_scaling_effect_estimation_error.pdf", fig4)
+
+
+this_df = filter(:height => h -> h == 100, dfx)
+error = this_df[!,:N_total] .- this_df[!,:N_total_true]
+#error = (this_df[!,:N_total] .- this_df[!,:N_total_true]) ./ this_df[!,:N_total_true]
+hist(error)
+
+y = this_df[!,:N_total]
+x = this_df[!,:N_total_true]
+scatter(x, y)
+
+error
 
 ## plot only the h=30 trees with N total
 

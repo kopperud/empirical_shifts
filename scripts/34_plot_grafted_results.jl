@@ -171,7 +171,7 @@ axislegend(axs[3])
 
 fig2
 
-save("figures/")
+save("figures/delta_netdiv.pdf", fig2)
 
 
 

@@ -8,18 +8,18 @@ using Glob
 
 scratch = "/sto/nfsscratch/grp_shoehna/empirical_shifts/"
 
-fpaths = Glob.glob("data/simulations/grafts/backbone/*.tre")
+fpaths = Glob.glob("data/simulations/grafts/upshift_mu/*.tre")
 
 
 n_iters = length(fpaths)
 
-io = open("output/prog_backbone.txt", "w")
+io = open("output/prog_upshift_mu.txt", "w")
 
 completed_jobs = [
-                  split(Base.basename(x), ".")[1] for x in Glob.glob("output/simulations/grafts/backbone/jld2/*.jld2", scratch)
+                  split(Base.basename(x), ".")[1] for x in Glob.glob("output/simulations/grafts/upshift_mu/jld2/*.jld2", scratch)
  ]
 
-prog = Progress(n_iters; desc = "Inference (backbone): ", output= io);
+prog = Progress(n_iters; desc = "Inference (upshift_mu): ", output= io);
 
 for fpath in fpaths
 
@@ -50,7 +50,7 @@ for fpath in fpaths
         is_significant = findall(shift_bf .!= 0)
 
         N = state_shifts(model, data, Ds, Fs);
-        N = N[is_significant,:,:];
+        N = N[is_significant,:,:]
 
         ## calculate S root
         root_index = length(data.tiplab)+1 
@@ -62,14 +62,15 @@ for fpath in fpaths
         netdiv_root = sum((λ .- μ) .* S_root)
         netdiv_tips = tip_rates(model, data, Ds, Fs)[!,:netdiv]
 
+
         ## save data
-        fpath = string(scratch, "output/simulations/grafts/backbone/newick/", name, ".tre")
+        fpath = string(scratch, "output/simulations/grafts/upshift_mu/newick/", name, ".tre")
         writenewick(fpath, data, rates)
 
-        fpath = string(scratch, "output/simulations/grafts/backbone/rates/", name, ".csv")
+        fpath = string(scratch, "output/simulations/grafts/upshift_mu/rates/", name, ".csv")
         CSV.write(fpath, rates)
 
-        fpath = string(scratch, "output/simulations/grafts/backbone/jld2/", name, ".jld2")
+        fpath = string(scratch, "output/simulations/shift_grafts/upshift_mu/jld2/", name, ".jld2")
 
         save(fpath, 
             "N", N,

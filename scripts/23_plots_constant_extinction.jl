@@ -13,7 +13,9 @@ push!(fpaths, Glob.glob("output/simulations/constant_speciation/jld2/*.jld2"))
 push!(fpaths, Glob.glob("output/simulations/constant_speciation2/jld2/*.jld2"))
 
 function compute_ratios(N, model)
-    Nmatrix = sum(N, dims = 1)[1,:,:]
+    #Nmatrix = sum(N, dims = 1)[1,:,:]
+    Nmatrix = N
+
     nbins = 14
 
     Ns = zeros(3,nbins)
@@ -85,6 +87,8 @@ for j in 1:4
         next!(prog)
     end
 end
+
+
 finish!(prog)
 
 dfx = vcat(dfs...)
@@ -143,3 +147,84 @@ fig
 
 
 save("figures/partial_constant_models_ratios.pdf", fig)
+
+
+## the more spread models
+
+fpaths = []
+
+push!(fpaths, Glob.glob("output/simulations/constant_extinction_spread/jld2/*.jld2"))
+push!(fpaths, Glob.glob("output/simulations/constant_speciation_spread/jld2/*.jld2"))
+
+
+dfs = DataFrame[]
+
+for j in 1:2
+    paths = fpaths[j]
+    for path in paths
+        x = load(path)
+        iter = split(Base.basename(path), ".")[1]
+        model = make_model(x)
+        
+        r = compute_ratios(x["N"], model)
+        df = DataFrame(
+            "ratio μ" => r[1],
+            "ratio λ" => r[2],
+            "ratio μ+λ" => r[3],
+            "study" => j,
+            "ntip" => x["ntip"],
+            "iter" => iter,
+            )
+        push!(dfs, df)
+
+        next!(prog)
+    end
+end
+
+
+dfx = vcat(dfs...)
+
+fig = Figure(size = (400, 700));
+
+
+## iter over models
+axs = []
+for j in 1:2
+    ## iter over rows
+    df = filter(:study => x -> x == j, dfx)
+    ntrees = size(df)[1]
+     
+    ax1 = Axis(fig[1,j], xlabel = "number of tips", xticklabelrotation = π/2, title = "$(ntrees) trees")
+    ax2 = Axis(fig[2,j], xlabel = L"\hat{N}_\mu/\hat{N}", xticklabelrotation = π/2)#, title = "r = $(titles[1])")
+    ax3 = Axis(fig[3,j], xlabel = L"\hat{N}_\lambda/\hat{N}", xticklabelrotation = π/2)#, title = "r = $(titles[2])")
+    ax4 = Axis(fig[4,j], xlabel = L"\hat{N}_{\lambda+\mu}/\hat{N}")#", title = "r = $(titles[3])")
+
+    if ntrees > 0
+
+        hist!(ax1, df[!,:ntip])  
+        hist!(ax2, df[!,"ratio μ"], bins = 15, color = "orange")
+        hist!(ax3, df[!,"ratio λ"], bins = 15, color = "blue")
+        hist!(ax4, df[!,"ratio μ+λ"], bins = 15, color = "gray")
+        for ax in (ax2, ax3, ax4)
+            xlims!(ax, (0.0, 1.0))
+            #push!(axs, ax)
+        end
+    end
+end
+
+Label(fig[-2,1], "constant extinction")
+Label(fig[-2,2], "constant speciation")
+
+Label(fig[-1,1], "μ=0.13,λ=[0.11,0.2,0.29],η=0.0014")
+Label(fig[-0,2], "μ=[0.04,0.13,0.22],λ=0.2,η=0.0014")
+
+Label(fig[0,1], "inference sd=0.587")
+Label(fig[-1,2], "inference sd=0.587")
+
+for j in 1:2
+    colsize!(fig.layout, j, Relative(1/2))
+end
+
+fig
+
+save("figures/partial_constant_models_ratios_spread.pdf", fig)

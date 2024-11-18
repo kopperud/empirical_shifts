@@ -21,7 +21,7 @@ pooled = filter(:type => x -> x == "estimate, all pooled", df)
 
 
 
-fig = Makie.Figure(size = (400, 250), fontsize = 14)
+fig = Makie.Figure(size = (400, 250), fontsize = 14);
 #figure_padding = (1,1,1,1))
 
 yt = collect(range(0.0, 1.0; length = 5))
@@ -210,7 +210,7 @@ ax2 = Axis(fig3[1,2];
     kwargs2...)
 ax3 = Axis(fig3[2,1];
     xlabel = L"\text{number of tips}",
-    xt = [0, ]
+    #xt = [0, ],
     kwargs2...)
 ax4 = Axis(fig3[2,2];
     xlabel = L"\text{number of tips}",
