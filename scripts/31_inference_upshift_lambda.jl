@@ -45,7 +45,7 @@ for fpath in fpaths
         Ds, Fs = backwards_forwards_pass(model, data);
         Ss = ancestral_state_probabilities(data, Ds, Fs);
 
-        rates = birth_death_shift(data, model);
+        rates = birth_death_shift(model, data);
         shift_bf = rates[1:end-1,:shift_bf]
         is_significant = findall(shift_bf .!= 0)
 
@@ -78,7 +78,6 @@ for fpath in fpaths
             "ntip", ntip,
             "mu", μ,
             "etaml", ηml,
-            "magnitude", mag,
             "treelength", tl,
             "netdiv_root", netdiv_root,
             "netdiv_tips", netdiv_tips,
