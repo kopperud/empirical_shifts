@@ -70,7 +70,7 @@ for fpath in fpaths
         fpath = string(scratch, "output/simulations/grafts/upshift_mu/rates/", name, ".csv")
         CSV.write(fpath, rates)
 
-        fpath = string(scratch, "output/simulations/shift_grafts/upshift_mu/jld2/", name, ".jld2")
+        fpath = string(scratch, "output/simulations/grafts/upshift_mu/jld2/", name, ".jld2")
 
         save(fpath, 
             "N", N,
