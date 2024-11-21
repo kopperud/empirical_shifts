@@ -9,7 +9,7 @@
 #SBATCH --ntasks=1
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=16
-#SBATCH --partition=lemmium
+#SBATCH --partition=krypton
 
 #module load R/4.2.3 gnu openblas
 #module load openblas

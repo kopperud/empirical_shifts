@@ -8,7 +8,7 @@
 #SBATCH --qos=high_prio
 #SBATCH --ntasks=2
 #SBATCH --nodes=1
-#SBATCH --partition=krypton
+#SBATCH --partition=lemmium
 
 #module load R/4.2.3 gnu openblas
 module load R/4.3.2 gnu openblas
