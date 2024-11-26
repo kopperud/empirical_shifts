@@ -57,7 +57,8 @@ graft_tree <- function(old_tree, young_tree, break_time){
 age <- 60
 set.seed(123)
 
-tr <- tess.sim.age(n = 500, age = age, lambda = 0.3, mu = 0.21)
+#tr <- tess.sim.age(n = 500, age = age, lambda = 0.3, mu = 0.21)
+tr <- tess.sim.age(n = 500, age = age, lambda = 0.325, mu = 0.235)
 
 backbone_trees <- list()
 j = 1; for (i in seq_along(tr)){
@@ -68,10 +69,12 @@ j = 1; for (i in seq_along(tr)){
 }
 
 ## simulate high-diversity trees for a short time 
-high_div_lambda_trees <- tess.sim.age(n = 500, age = 15, lambda = 0.5, mu = 0.21)
-high_div_mu_trees <- tess.sim.age(n = 500, age = 15, lambda = 0.3, mu = 0.01)
+#high_div_lambda_trees <- tess.sim.age(n = 500, age = 15, lambda = 0.5, mu = 0.21)
+#high_div_mu_trees <- tess.sim.age(n = 500, age = 15, lambda = 0.3, mu = 0.01)
+high_div_lambda_trees <- tess.sim.age(n = 500, age = 15, lambda = 0.52, mu = 0.235)
+high_div_mu_trees <- tess.sim.age(n = 500, age = 15, lambda = 0.325, mu = 0.0)
 ## simulate low-diversity trees for a longer time (so we might have a chance of recovering them)
-low_div_trees <- tess.sim.age(n = 500, age = 40, lambda = 0.1, mu = 0.21)
+low_div_trees <- tess.sim.age(n = 500, age = 40, lambda = 0.13, mu = 0.235)
 
 
 upshift_lambda_trees <- list()
@@ -109,7 +112,7 @@ par(mfrow=c(1,1))
 
 ## save to file
 #for (i in seq_along(upshift_trees)){
-for (i in 1:10){
+for (i in 1:350){
   fpath <- paste0("data/simulations/grafts/backbone/", i, ".tre")
   write.tree(backbone_trees[[i]], fpath) 
   
@@ -131,3 +134,28 @@ par(mfrow=c(1,3))
 plot.phylo(tr[[1]], show.tip.label = F, main = paste0("backbone (n=", length(tr[[1]]$tip.label), ")"))
 plot.phylo(tr[[2]], show.tip.label = F, main = paste0("downshift (n=", length(tr[[2]]$tip.label), ")"))
 plot.phylo(tr[[3]], show.tip.label = F, main = paste0("upshift (n=", length(tr[[3]]$tip.label), ")"))
+
+
+## plot some more
+par(mfrow = c(1,1))
+
+hist(ntip2 - ntip3)
+
+par(mfrow = c(2,1))
+upshift_tips1 <- sapply(high_div_lambda_trees, function(x) length(x$tip.label))
+upshift_tips2 <- sapply(high_div_mu_trees, function(x) length(x$tip.label))
+hist(upshift_tips1, main = paste0("model w/ high lambda, mean ntip = ",mean(upshift_tips1)), breaks = 30, xlim = c(0.0, 1500))
+hist(upshift_tips2, main = paste0("model w/ low lambda, mean ntip = ",mean(upshift_tips2)), breaks = 30, xlim = c(0.0, 1500))
+
+var(upshift_tips1)
+var(upshift_tips2)
+
+mean(upshift_tips1)
+mean(upshift_tips2)
+
+
+
+hist(ntip3, main = "upshift (mu)", breaks = 30)
+mean(ntip2)
+mean(ntip3)
+
