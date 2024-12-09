@@ -21,7 +21,10 @@ These are the outputs I want for the inference:
 
 
 
-df = CSV.read("data/empirical/Phylogenies for DeepILS project.csv", DataFrame)
+df = CSV.read("data/empirical/metadata.csv", DataFrame)
+df = filter(:skip => x -> x != 1, df)
+
+
 ρs = Dict{String, Float64}()
 for row in eachrow(df)
     fn = row["Filename"]
@@ -36,20 +39,9 @@ fpaths = [
     fpath for fpath in fpaths if Base.basename(fpath) ∈ keys(ρs)
 ]
 
-skipped_trees = [
-    "Seed_plants_Smith&Brown2018_GBMB", ## skip because not binary
-    "Seed_plants_Smith&Brown2018_GBMB_binary", ## same, it's binary but shitty
-    "Mimosoideae_Ringelberg2023", ## skip because negative branch lengths
-    "Nymphalidae_Chazot2021", ## negative branch lenghts
-    "Solanaceae_Sarkinen2013" # ??
-]
-
 ## verify that all trees can be read
 for fpath in fpaths
     name = join(split(Base.basename(fpath), ".")[1:end-1])
-    if name in skipped_trees
-        continue
-    end
 
     phy = readtree(fpath)
     data = SSEdata(phy, 1.0)
@@ -69,9 +61,6 @@ for fpath in fpaths
     phy = readtree(fpath)
     name = join(split(Base.basename(fpath), ".")[1:end-1])
 
-    if name in skipped_trees
-        continue
-    end
 
     if name in completed_jobs
         continue
