@@ -27,10 +27,10 @@ function ols_regression(x, y)
     return(β, Varβ, ySE)
 end
 
-function magnitude(model, N)
+function shift_size(model, N)
     r = model.λ .- model.μ
     Δr = N .* (r .- r')
-    mean_magnitude = sum(Δr) / sum(N)
+    mean_magnitude = sum(Δr) 
     return(mean_magnitude)
 end
 
@@ -77,7 +77,7 @@ fpaths = Glob.glob("output/" * inference * "/jld2/*.jld2")
     d[name] = x
 end
 
-models = Dict{String, SSEconstant}()
+models = Dict{String, BDSconstant}()
 for name in names
     λ = d[name]["lambda"]
     μ = d[name]["mu"]
@@ -127,21 +127,29 @@ n_datasets = length(d)
 magnitudes = zeros(n_datasets)
 directions = zeros(n_datasets)
 heights = zeros(n_datasets)
+treelengths = zeros(n_datasets)
 N_per_time = zeros(n_datasets)
 
 for (i, name) in enumerate(keys(d))
     println(name)
     model = models[name]
+    shift_bf = rates[name][!,:shift_bf]
+
     heights[i] = maximum(datasets[name .* ".tree"].node_depth)
-    
-    Nsum = sum(d[name]["N"], dims = 1)[1,:,:]
-    m = magnitude(model, Nsum)
+    treelengths[i] = sum(datasets[name * ".tree"].branch_lengths)
+   
+    is_signif = findall(shift_bf .> 10)
+
+    Nsum = sum(d[name]["N"][is_signif,:,:], dims = 1)[1,:,:]
+    m = shift_size(model, Nsum)
     dir = direction(model, Nsum)
     magnitudes[i] = m    
     directions[i] = dir
     N_per_time[i] = df[df[:,:name] .== name,:N_per_time][1]
 
 end
+
+#filter(:name => x -> x == "Vascular_Plants_Zanne2014", df)[1,:]
 
 ## write to a file
 
