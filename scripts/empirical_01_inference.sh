@@ -21,5 +21,5 @@ export R_HOME="/opt/cres/lib/hpc/gcc7/R/4.2.3/lib64/R"
 export LD_LIBRARY_PATH="/opt/cres/lib/hpc/gcc7/R/4.2.3/lib64/R/lib"
 echo ${SLURM_CPUS_PER_TASK} > output/ntasks.txt
 
-julia --threads ${SLURM_CPUS_PER_TASK} scripts/empirical_inference.jl > output/screen.txt
+julia --threads ${SLURM_CPUS_PER_TASK} scripts/empirical_01_inference.jl > output/screen.txt
 
