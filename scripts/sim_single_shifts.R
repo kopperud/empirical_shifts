@@ -76,6 +76,15 @@ high_div_mu_trees <- tess.sim.age(n = 500, age = 15, lambda = 0.325, mu = 0.0)
 ## simulate low-diversity trees for a longer time (so we might have a chance of recovering them)
 low_div_trees <- tess.sim.age(n = 500, age = 40, lambda = 0.13, mu = 0.235)
 
+expected_number_of_tips <- function(lambda, mu, age){
+  res <- 2 * (1 + (lambda/(lambda-mu))*(exp(age*(lambda-mu))-1))
+  return(res)
+}
+expected_number_of_tips(0.325, 0.235, 60)
+expected_number_of_tips(0.52, 0.235, 15)
+expected_number_of_tips(0.325, 0.0, 15)
+expected_number_of_tips(0.13, 0.235, 40)
+
 
 upshift_lambda_trees <- list()
 upshift_mu_trees <- list()
