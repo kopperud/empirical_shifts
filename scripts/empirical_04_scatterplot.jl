@@ -14,7 +14,7 @@ df = df[df[!,:inference] .== inference,:]
 
 df[!,:type] = String.(df[!,:type]) ## ensure it's a string
 
-df2 = df[df[!,:type] .== "pooled",:]
+df2 = df[df[!,:type] .== "strong support",:]
 
 
 heights = df2[!,:height]
@@ -23,6 +23,7 @@ heights = df2[!,:height]
 shift_df = DataFrame(
     "log_height" => log10.(df2[!,:height]),
     "log_eta" => log10.(df2[!,:etaml]),
+    "log_eta_times_tl" => log10.(df2[!,:etaml] .* df2[!,:treelength]),
     "log_N" => log10.(df2[!,:N_total]),
     "log_N_by_t" => log10.(df2[!,:N_per_time]),
     #"log_netdiv" => log10.(df2[!,:lambdaml] .- df2[!,:muml])
@@ -72,19 +73,19 @@ function foobar!(fig, xvars, xlabs, shift_df, xdigits = [2,1], ydigits = [1,4])
         s = [Printf.format(fmt, x) for x in xt[i]]
         append!(xtl, [s])
     end
-    yt = 10 .^ (collect(range(extrema(shift_df[!,:log_N])...; length = 5)))
+    yt = 10 .^ (collect(range(extrema(shift_df[!,:log_eta_times_tl])...; length = 5)))
     
     fmt = Printf.Format("%.$(ydigits[1])f")
     ytl = [Printf.format(fmt, y) for y in yt]
 
-    yt2 = 10 .^ (collect(range(extrema(shift_df[!,:log_N_by_t])...; length = 5)))
+    yt2 = 10 .^ (collect(range(extrema(shift_df[!,:log_eta])...; length = 5)))
     fmt = Printf.Format("%.$(ydigits[2])f")
     ytl2 = [Printf.format(fmt, y) for y in yt2]
     
 
     axs = []
     for i in eachindex(xvars)
-        ax = Axis(fig[1, i], ylabel = L"\text{shifts }(\hat{N})", xlabel = xlabs[i],
+        ax = Axis(fig[1, i], ylabel = L"\text{shifts }(\eta \times t)", xlabel = xlabs[i],
         xgridvisible = false, ygridvisible = false,
         yscale = log10, xscale = log10,
         xticks = (xt[i], xtl[i]),
@@ -100,7 +101,7 @@ function foobar!(fig, xvars, xlabs, shift_df, xdigits = [2,1], ydigits = [1,4])
     end
 
     for i in eachindex(xvars)
-        ax = Axis(fig[2, i], ylabel = L"\text{shifts/time }(\hat{N}/t)", 
+        ax = Axis(fig[2, i], ylabel = L"\text{shift rate }(\eta)", 
         xlabel = xlabs[i],
         xgridvisible = false, ygridvisible = false,
         yscale = log10, xscale = log10,
@@ -118,7 +119,7 @@ function foobar!(fig, xvars, xlabs, shift_df, xdigits = [2,1], ydigits = [1,4])
     ylowers = zeros(5, 20)
     yuppers = zeros(5, 20)
     for i in eachindex(xvars)
-        β, Varβ, ySE = ols_regression(xvars[i], shift_df[!,:log_N])
+        β, Varβ, ySE = ols_regression(xvars[i], shift_df[!,:log_eta_times_tl])
         linefit(x) = β[1] + β[2]*x
         x = collect(lrange3(extrema(10 .^ (xvars[i]))..., 20))
         y = linefit.(log10.(x))
@@ -131,7 +132,7 @@ function foobar!(fig, xvars, xlabs, shift_df, xdigits = [2,1], ydigits = [1,4])
         ylower[ylower .< ϵ] .= ϵ
 
         CairoMakie.band!(axs[i], x, ylower, yupper, color = "#e0e0e0")
-        CairoMakie.scatter!(axs[i], 10 .^ xvars[i], 10 .^ shift_df[!,:log_N]; 
+        CairoMakie.scatter!(axs[i], 10 .^ xvars[i], 10 .^ shift_df[!,:log_eta_times_tl]; 
                         label = "asd", markersize = 7, color = "black")
 
         x = [extrema(10 .^ (xvars[i]))...]
@@ -142,7 +143,7 @@ function foobar!(fig, xvars, xlabs, shift_df, xdigits = [2,1], ydigits = [1,4])
     end
 
     for i in eachindex(xvars)
-        β, Varβ, ySE = ols_regression(xvars[i], shift_df[!,:log_N_by_t])
+        β, Varβ, ySE = ols_regression(xvars[i], shift_df[!,:log_eta])
         linefit(x) = β[1] + β[2]*x
 
         x = collect(lrange3(extrema(10 .^ xvars[i])..., 20))
@@ -150,10 +151,10 @@ function foobar!(fig, xvars, xlabs, shift_df, xdigits = [2,1], ydigits = [1,4])
         yupper = 10 .^ (y .+ 2 .* ySE.(log10.(x)))
         ylower = 10 .^ (y .- 2 .* ySE.(log10.(x)))
         #ϵ = 1e-6
-        ϵ = 0.7 * minimum(10 .^ shift_df[!,:log_N_by_t])
+        ϵ = 0.7 * minimum(10 .^ shift_df[!,:log_eta])
         ylower[ylower .< ϵ] .= ϵ
         CairoMakie.band!(axs[i+offset], x, ylower, yupper, color = "#e0e0e0")
-        CairoMakie.scatter!(axs[i+offset], 10 .^ xvars[i], 10 .^ shift_df[!,:log_N_by_t]; 
+        CairoMakie.scatter!(axs[i+offset], 10 .^ xvars[i], 10 .^ shift_df[!,:log_eta]; 
                             label = "asd", markersize = 7, color = "black")
         x = [extrema(10 .^ xvars[i])...]
         y = 10 .^(linefit.(log10.(x)))
@@ -232,7 +233,7 @@ fig1
 #CairoMakie.save("figures/scatter1.pdf", fig1)
 CairoMakie.save("figures/scatter1_empirical.pdf", fig1)
 
-β, Varβ, ySE = ols_regression(xvars[2], shift_df[!,:log_N_by_t])
+β, Varβ, ySE = ols_regression(xvars[2], shift_df[!,:log_eta])
 
 print(β[2], " ± ", sqrt(Varβ[2,2]))
 

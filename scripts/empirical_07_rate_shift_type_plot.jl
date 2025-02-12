@@ -12,13 +12,11 @@ using Pesto
 ##
 ##########################
 
-function compute_ratios(name, model, subdir, filter = "")
+function compute_ratios(name, model, rates)
     N = d[name]["N"]
 
-    if filter == "support"
-        is_supported = support_vector(name, subdir)
-        N = N[is_supported,:,:]
-    end
+    is_supported = rates[!,:is_signif]
+    N = N[is_supported,:,:]
 
     Nmatrix = sum(N, dims = 1)[1,:,:]
     nbins = 14
@@ -57,6 +55,7 @@ inference = "empirical"
 
 df = CSV.read("output/empirical_munged.csv", DataFrame)
 df = df[df[!,:inference] .== inference,:]
+df = df[df[!,:type] .== "strong support",:]
 
 ## N tensor
 #
@@ -87,7 +86,7 @@ end
 #fpaths = glob("*.tree", "data/empirical")
 fpaths = ["data/empirical/" * name * ".tree" for name in names]
 
-df = CSV.read("data/empirical/Phylogenies for DeepILS project.csv", DataFrame)
+df = CSV.read("data/empirical/metadata.csv", DataFrame)
 ρs = Dict()
 for row in eachrow(df)
     fn = row["Filename"]
@@ -107,6 +106,21 @@ for fpath in fpaths
         datasets[bn] = SSEdata(trees[bn], ρs[bn])
     end
 end
+
+rates_fpaths = Glob.glob("output/" * inference * "/rates/*.csv")
+d_rates = Dict{String, DataFrame}()
+@showprogress for fpath in rates_fpaths
+    name = split(Base.basename(fpath), ".")[1]
+    df = CSV.read(fpath, DataFrame)
+    sort!(df, :edge)
+    filter!(:edge => x -> x != 0, df) ## remove the root edge
+    is_signif = df[!,:shift_bf] .> 100
+    df[!,:is_signif] = is_signif
+
+    d_rates[name] = df
+end
+
+
 
 #heights = [maximum(d.node_depth) for (key, d) in datasets]
 
@@ -142,8 +156,7 @@ for (dataset_index, name) in enumerate(names)
 
     rs1 = compute_ratios(name, 
             models[name],
-            inference,
-            "")
+            d_rates[name])
 
     ratios1[dataset_index,:] .= rs1
 end
@@ -180,10 +193,13 @@ for (i, prior) in enumerate(priors)
     CairoMakie.lines!(ax, x, y, color = colors[i], linestyle = :solid, alpha = 0.5, label = "prior")
 end
 
-xs = vcat([repeat([i], size(ratios1)[1]) for i in 1:3]...)
-cs = vcat([repeat([i], size(ratios1)[1]) for i in colors]...)
+ratios2 = ratios1[.!isnan.(ratios1[:,1]),:]
 
-CairoMakie.rainclouds!(ax, xs .- 0.25, vcat(ratios1...), 
+xs = vcat([repeat([i], size(ratios2)[1]) for i in 1:3]...)
+cs = vcat([repeat([i], size(ratios2)[1]) for i in colors]...)
+
+
+CairoMakie.rainclouds!(ax, xs .- 0.25, vcat(ratios2...), 
                      color = cs, label = "Posterior",
                      clouds=nothing, boxplot_width=0.5,
                      jitter_width=0.35,
@@ -192,5 +208,6 @@ CairoMakie.rainclouds!(ax, xs .- 0.25, vcat(ratios1...),
 
 #axislegend(ax)
 #set_theme!(fig, figure_padding = 0)
+fig
 
 CairoMakie.save("figures/empirical_rate_shift_type.pdf", fig)

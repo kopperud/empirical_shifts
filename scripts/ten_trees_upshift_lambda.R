@@ -4,7 +4,7 @@ library(ggplot2)
 
 setwd("~/projects/empirical_shifts/")
 
-fpaths <- Sys.glob("output/simulations/grafts/upshift_lambda/newick/*.tre")[1:20]
+fpaths <- Sys.glob("output/simulations/grafts/upshift_lambda/newick/*.tre")[1:10]
 
 scalexformat <- function(x) sprintf("%.0f Ma", abs(th - round(x, 0)))
 th <- 60
@@ -81,7 +81,7 @@ right <- Reduce("+", ps_right) + plot_layout(ncol = 1, guides = "collect") & the
 
 p <- left | middle | right
 
-ggsave("figures/ten_trees_upshift_lambda.pdf", p, width = 400, height = 700*1.9, units = "mm", limitsize=FALSE)
+ggsave("figures/ten_trees_upshift_lambda.pdf", p, width = 450, height = 600*1.0, units = "mm", limitsize=FALSE)
 
 
 ## upshift mu

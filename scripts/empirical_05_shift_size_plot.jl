@@ -17,6 +17,7 @@ inference = "empirical"
 
 df = CSV.read("output/empirical_munged.csv", DataFrame)
 df = df[df[!,:inference] .== inference,:]
+df = df[df[!,:type] .== "strong support",:]
 
 ## N tensor
 #
@@ -31,7 +32,22 @@ fpaths = Glob.glob("output/" * inference * "/jld2/*.jld2")
     name = split(Base.basename(fpath), ".")[1]
     x = JLD2.load(fpath)
     d[name] = x
+
 end
+
+rates_fpaths = Glob.glob("output/" * inference * "/rates/*.csv")
+d_rates = Dict{String, DataFrame}()
+@showprogress for fpath in rates_fpaths
+    name = split(Base.basename(fpath), ".")[1]
+    df = CSV.read(fpath, DataFrame)
+    sort!(df, :edge)
+    filter!(:edge => x -> x != 0, df) ## remove the root edge
+    is_signif = df[!,:shift_bf] .> 100
+    df[!,:is_signif] = is_signif
+
+    d_rates[name] = df
+end
+
 
 models = Dict{String, SSEconstant}()
 for name in names
@@ -44,7 +60,7 @@ end
 
 fpaths = ["data/empirical/" * name * ".tree" for name in names]
 
-meta = CSV.read("data/empirical/Phylogenies for DeepILS project.csv", DataFrame)
+meta = CSV.read("data/empirical/metadata.csv", DataFrame)
 ρs = Dict()
 for row in eachrow(meta)
     fn = row["Filename"]
@@ -92,10 +108,11 @@ name_subset = [
     "Mammalia_AlvarezCarretero2022",
     "Rosidae_Sun2020",
     "Chondrichthyes_Stein2018",
-    "Squamata_Tonini2016",
+    "Squamata_Zheng2016",
     "Asteraceae_Palazzesi2022",
-    "Agaricomycetes_SanchezGarcia2020",
-    "Lissamphibia_Jetz2018",
+    "Agaricomycetes_Varga2019",
+    #"Lissamphibia_Jetz2018",
+    "Anura_Portik2023",
     #"Anthophila_HenriquezPiskulich",
     "Aves_Quintero2022",
     "Polypodiophyta_Nitta2022",
@@ -108,8 +125,8 @@ name_subset = [
 
 nbins1 = [
     20, 20, 10,
-    6, 6, 20, 18,
-    4, 14, 4, 20
+    4, 6, 20, 18,
+    6, 14, 4, 20
 ]
 
 titles = []
@@ -168,7 +185,8 @@ for (q, name) in enumerate(name_subset)
     println(q, "\t", name)
 
     #Nmatrix = N[dataset_index,:,:,1]
-    Nmatrix = sum(d[name]["N"], dims = 1)[1,:,:]
+    N_signif = d[name]["N"][d_rates[name][!,:is_signif],:,:]
+    Nmatrix = sum(N_signif, dims = 1)[1,:,:]
     #nbins = 20
     nbins = nbins1[q]
 
@@ -259,7 +277,6 @@ fig
 #set_theme!(fig, figure_padding = 0)
 #CairoMakie.save("figures/fig1_empirical.pdf", fig)
 #CairoMakie.save("figures/histogram_magnitude_etaoneshift.pdf", fig)
-
 
 
 
@@ -553,4 +570,29 @@ axislegend(ax1; position = :lt);
 fig2
 
 
+
+
+x = Float64[]
+y = Float64[]
+
+vars = Dict(key => var(val[!,:mean_netdiv]) for (key, val) in d_rates)
+
+for row in eachrow(df)
+    name = row[:name]
+    v = vars[name]
+    println(name)
+
+    push!(x, row[:height])
+    push!(y, v)
+    println(typeof(v))
+end
+
+f = Figure()
+ax = Axis(f[1,1],
+xscale = log10,
+yscale = log10)
+scatter!(ax, x, y)
+f
+
+y
 

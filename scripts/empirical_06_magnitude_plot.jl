@@ -30,7 +30,7 @@ end
 function shift_size(model, N)
     r = model.λ .- model.μ
     Δr = N .* (r .- r')
-    mean_magnitude = sum(Δr) 
+    mean_magnitude = sum(Δr) / sum(N)
     return(mean_magnitude)
 end
 
@@ -55,7 +55,7 @@ inference = "empirical"
 
 df = CSV.read("output/empirical_munged.csv", DataFrame)
 df = df[df[!,:inference] .== inference,:]
-df = df[df[!,:type] .== "pooled",:]
+df = df[df[!,:type] .== "strong support",:]
 
 ########################
 ##
@@ -86,7 +86,7 @@ for name in names
 end
 
 fpaths = ["data/empirical/" * name * ".tree" for name in names]
-meta = CSV.read("data/empirical/Phylogenies for DeepILS project.csv", DataFrame)
+meta = CSV.read("data/empirical/metadata.csv", DataFrame)
 ρs = Dict()
 for row in eachrow(meta)
     fn = row["Filename"]
@@ -138,7 +138,7 @@ for (i, name) in enumerate(keys(d))
     heights[i] = maximum(datasets[name .* ".tree"].node_depth)
     treelengths[i] = sum(datasets[name * ".tree"].branch_lengths)
    
-    is_signif = findall(shift_bf .> 10)
+    is_signif = findall(shift_bf .> 100)
 
     Nsum = sum(d[name]["N"][is_signif,:,:], dims = 1)[1,:,:]
     m = shift_size(model, Nsum)
@@ -160,12 +160,13 @@ plotdf = DataFrame(
     "name" => collect(keys(d)),
     #"N_per_time" => N_per_time,
 )
+plotdf = plotdf[.!isnan.(plotdf[!,:direction]),:]
 
 meta2 = filter(:Filename => x -> !ismissing(x), meta)
 meta2[:,:name] = map(x -> split(x, ".")[1], meta2.Filename)
-dfx = innerjoin(plotdf, meta2, on = :name)
-dfx2 = innerjoin(dfx, df, on = :name)
-CSV.write("output/munged_magnitude.csv", dfx2)
+dfx0 = innerjoin(plotdf, meta2, on = :name)
+dfx = innerjoin(dfx0, df, on = :name)
+#CSV.write("output/munged_magnitude.csv", dfx2)
 
 ##################
 ##
@@ -194,8 +195,9 @@ ax_direction = Axis(fig2[1,1],
             yticklabelsize = 9)
 xlims!(ax_direction, -1.1, 1.1)
 
+directions2 = directions[.!isnan.(directions)]
 CairoMakie.hist!(ax_direction, 
-    directions, bins = 15, color = "gray")
+    directions2, bins = 5, color = "gray")
 
 
 #xt = [-0.25, 0.0, 0.25, 0.50, 0.75, 1.0, 1.25]
@@ -213,18 +215,18 @@ ax_magnitude = Axis(fig2[1,2],
             rightspinevisible = false,
             xticklabelsize = 9,
             yticklabelsize = 9)
-xlims!(ax_magnitude, -1.35, 1.35)
+xlims!(ax_magnitude, -1.45, 1.45)
 
 CairoMakie.hist!(ax_magnitude, 
-    magnitudes, bins = 15, color = "gray")
+    dfx[!,:magnitude], bins = 15, color = "gray")
 
     
 
-xt = 10 .^ (collect(range(extrema(log10.(plotdf[!,:heights]))...; length = 5)))
+xt = 10 .^ (collect(range(extrema(log10.(dfx[!,:height]))...; length = 5)))
 xtl = [@sprintf("%.1f", x) for x in xt]
 
 
-yr = collect(range(extrema(plotdf[!,:magnitudes])...; length = 5))
+yr = collect(range(extrema(dfx[!,:magnitude])...; length = 5))
 #yr = [-0.25, 0.0, 0.25, 0.50, 0.75, 1.0, 1.25]
 yr = [-1.0, -0.50, 0.0, 0.50, 1.0]
 yt = yr
@@ -244,17 +246,18 @@ ax_scatter = Axis(fig2[1,3],
         xticklabelsize = 9,
         yticklabelsize = 9)
 
-ylims!(ax_scatter, -1.35, 1.35)
+xlims!(ax_scatter, 30.0, 450.0)
+ylims!(ax_scatter, -0.1, 1.35)
 
+fig2
 
-yr = collect(range(extrema(magnitudes)...; length = 5))
+yr = collect(range(extrema(dfx[!,:magnitude])...; length = 5))
 yt = yr
 ytl = [@sprintf("%.2f", y) for y in yt]
 
+β, Varβ, ySE = ols_regression(log10.(dfx[!,:height]), dfx[!,:magnitude])
 
-β, Varβ, ySE = ols_regression(log10.(heights), magnitudes)
-
-x = collect(Pesto.lrange(extrema(heights)..., 20))
+x = collect(Pesto.lrange(extrema(dfx[!,:height])..., 20))
 linefit(x) = β[1] + β[2]*log10.(x)
 
 yarithmetic = linefit.(x)
@@ -265,7 +268,6 @@ yupper = yarithmetic .+ 2*sqrt.(yVar)
 ylower = yarithmetic .- 2*sqrt.(yVar)
 y = linefit.(x)
 
-
 CairoMakie.band!(ax_scatter, x, ylower, yupper, color = "#e0e0e0")
 CairoMakie.lines!(ax_scatter, x, y; label = "OLS", markersize = 7, color = "gray", linestyle = :dash)
 
@@ -274,7 +276,6 @@ CairoMakie.scatter!(ax_scatter,
                     magnitudes,
                     color = "black",
                     markersize = 7)
-
 
 colgap!(fig2.layout, 5)
 rowgap!(fig2.layout, 5)

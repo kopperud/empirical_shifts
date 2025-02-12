@@ -4,7 +4,7 @@ library(ggplot2)
 
 setwd("~/projects/empirical_shifts/")
 
-fpaths <- Sys.glob("output/simulations/grafts/backbone/newick/*.tre")[1:20]
+fpaths <- Sys.glob("output/simulations/grafts/backbone/newick/*.tre")[1:10]
 
 scalexformat <- function(x) sprintf("%.0f Ma", abs(th - round(x, 0)))
 th <- 60
@@ -71,7 +71,7 @@ for (i in seq_along(fpaths)){
      plot.title = element_text(size=22, hjust = 0.5),
          ) 
 }
-ps_left[[1]] <- ps_left[[1]] + ggtitle("true speciation = 0.325]")
+ps_left[[1]] <- ps_left[[1]] + ggtitle("true speciation = 0.325")
 ps_middle[[1]] <- ps_middle[[1]] + ggtitle("true extinction = 0.235")
 ps_right[[1]] <- ps_right[[1]] + ggtitle("true netdiv = 0.09")
 
@@ -81,7 +81,7 @@ right <- Reduce("+", ps_right) + plot_layout(ncol = 1, guides = "collect") & the
 
 p <- left | middle | right
 
-ggsave("figures/ten_trees_backbone.pdf", p, width = 400, height = 700*1.8, units = "mm", limitsize=FALSE)
+ggsave("figures/ten_trees_backbone.pdf", p, width = 450, height = 600*1.0, units = "mm", limitsize=FALSE)
 
 
 ## upshift mu

@@ -8,7 +8,7 @@ library(patchwork)
 library(readr)
 
 
-setwd("~/projects/pesto_empirical_clean")
+setwd("~/projects/empirical_shifts")
 
 
 readNumberOfShifts <- function(name, subdir = "empirical"){
@@ -27,7 +27,9 @@ readNumberOfShifts <- function(name, subdir = "empirical"){
   fpath <- paste0("output/", subdir, "/rates/", name, ".csv")
   df10 <- read.csv(fpath) |> as_tibble()
   df11 <- df10 %>%
-    filter(shift_bf > 10, nshift > 0.5)
+    #filter(shift_bf > 10, nshift > 0.5)
+    filter(shift_bf > 100)
+  number_of_supported <- nrow(df11)
   N_supported <- N[df11$edge,,,drop=FALSE]
   
   phypath <- paste0("output/", subdir, "/newick/", name, ".tre")
@@ -58,6 +60,7 @@ readNumberOfShifts <- function(name, subdir = "empirical"){
     "tree_mu" = tree_mu,
     "tree_relext" = tree_relext,
     "inference" = subdir,
+    "number_of_supported" = number_of_supported,
     "type" = "pooled",
   )
   
@@ -74,6 +77,7 @@ readNumberOfShifts <- function(name, subdir = "empirical"){
     "tree_mu" = tree_mu,
     "tree_relext" = tree_relext,
     "inference" = subdir,
+    "number_of_supported" = number_of_supported,
     "type" = "strong support",
   )
   
