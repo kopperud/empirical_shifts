@@ -1,0 +1,16 @@
+NodeNumber	CladeName	CommonNames	Skip    
+7642	Muroidea	Mice, rats, hamsters, ...	0
+8807	Geomyoidea	Kangaroo rats and pocket gophers	1
+7437	Caviomorpha	New World rodents	0
+7173	Sciuridae	Squirrels	0
+8953	Simiiformes	Monkeys and apes	0
+6128	Vespertilionidae	Vesper bats	0
+6522	Stenodermatinae	New World leaf-nosed bats (subset)	1
+5443	Ruminantia	Ruminants	0
+5754	Delphinidae	Dolphins	1
+5110	Mustelidae	Weasels, badgers, otters, ...	0
+5234	Canidae	Dogs	0
+5357	Felidae	Cats	1
+6757	Crocidurinae	White-toothed shrews	0
+4826	Macropodidae	Kangaroos and wallabies	0
+4746	Dasyuridae	Carnivorous marsupials	0
