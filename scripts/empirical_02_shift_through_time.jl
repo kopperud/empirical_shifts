@@ -29,7 +29,8 @@ end
 
 
 fpaths = ["data/empirical/" * name * ".tree" for name in names]
-df = CSV.read("data/empirical/Phylogenies for DeepILS project.csv", DataFrame)
+#df = CSV.read("data/empirical/Phylogenies for DeepILS project.csv", DataFrame)
+df = CSV.read("data/empirical/metadata.csv", DataFrame)
 ρs = Dict()
 for row in eachrow(df)
     fn = row["Filename"]
@@ -72,4 +73,3 @@ for name in keys(models)
     fpath = "output/empirical/shift_rate_through_time/$name.csv"
     CSV.write(fpath, df) 
 end
-
