@@ -4,7 +4,7 @@ Diversification analyses for large empirical phylogenies done with [Pesto](https
 
 ## Contents
 
-This repository contains several scripts that perform simulations of reconstructed phylogenetic trees, infer branch-specific diversification rates and number of rate shifts using `Pesto`, perform post-processing and produce pdf figures. The analyses provided in the manuscript were performed on an OpenSUSE Leap 15.4 Linux distribution.
+This repository contains several scripts that perform simulations of reconstructed phylogenetic trees, infer branch-specific diversification rates and number of rate shifts using `Pesto`, perform post-processing and produce pdf figures. The analyses provided in the manuscript were performed on an OpenSUSE Leap 15.6 Linux distribution.
 
 ## Organization 
 
@@ -30,8 +30,7 @@ The prefix for the script name will tell you what analysis the script belongs to
 
 * `empirical*`: these scripts are for the analyses of the empirical phylogenies
 * `age_scaling*`: these scripts are for the validation study using variable tree heights
-* `up_vs_down*`: these scripts are for the validation study where we assess whether and how precise upwards vs downward shifts can be inferred
-* `rate_shift_type*`: these scripts are for the validation study of the rate shift type, i.e. can we infer whether it was a shift in the speciation rate, the extinction rate, or whether it was a simultaneous shift in both rates that led to the divergence in species richness
+* `grafts*`: these scripts are for the validation study using grafted trees, where there is either no shift, one upshift (due to change in extinction or speciation) or one downshift
 * `fishtree*`: these scripts pertain to the supplemental materials where we subsampled many smaller clades in the actinopterygii tree from Rabosky (2018), and ran the inference procedure in each subtree.
 * `shifts_through_time*`: these scripts are setting up the figure for the instantaneous shift rate within phylogenies, averaged across the number of active lineages and plotted as a function of time
 * `table_rows_latex.R`: this script formats and prints the contents of the data table in the supplementary 
