@@ -118,20 +118,27 @@ save("figures/age_scaling_effect.pdf", fig2)
 fig3 = Figure(size = (650, 300))
 
 heights = [30, 40, 50, 60, 70, 80, 90, 100]
+
 xt = heights
+yt = [0.03, 0.02, 0.01, 0.005]
+
 ax1 = Axis(
     fig3[1,1],
     xticks = xt,
+    #yticks = yt,
     topspinevisible = false,
     rightspinevisible = false,
     xgridvisible = false,
     ygridvisible = false,
     yscale = log10,
+    #yscale = Makie.Symlog10(-0.005, 0.005),
     xlabel = L"\text{tree height (Ma)}",
-    ylabel = L"\text{no. rate shift events per time }(N/t)",
+    ylabel = L"\text{no. rate shift events per time}",
 )
 
-ylims!(ax1, 1e-6, 0.2)
+ylims!(ax1, 1e-6*0.8, 0.3)
+
+fig3
 
 
 colors = [:black, :orange]
@@ -142,7 +149,13 @@ for (i, this_df) in enumerate([df, df_true])
         df1 = filter(:height => h -> h == height, this_df)
 
         nrows = size(df1)[1]
-        y = df1[!,:N_per_time]
+        #y = df1[!,:N_per_time]
+        if hasproperty(df1, :support_per_time)
+            y = df1[!,:etaml]
+        else
+            y = df1[!,:N_per_time]
+        end
+
         x = df1[!,:height]
         w = 3.0
         x_jitter = x .+ (rand(nrows).-0.5) .* w
@@ -166,11 +179,16 @@ elem_3 = LineElement(color = :red, linestyle = :dash)
 
 Legend(fig3[1,2], 
     [elem_1, elem_2, elem_3],
-    ["true shifts", "estimated shifts", "shift rate (true)"],
+    [
+        L"\text{Realized shift rate }(N_\text{true}/t)",
+        L"\text{Estimated shift rate }(\eta)", 
+        L"\text{True shift rate }(\eta = 0.0008)",
+        ],
     patchsize = (35, 35), rowgap = 5,
     framevisible = false
     )
 fig3
+
 save("figures/age_scaling_effect2.pdf", fig3)
 
 
@@ -190,6 +208,7 @@ fig4 = Figure(size = (500, 500))
 
 heights = [30, 40, 50, 60, 70, 80, 90, 100]
 xt = heights
+
 ax2 = Axis(
     fig4[1,1],
     xticks = xt,
@@ -198,9 +217,10 @@ ax2 = Axis(
     xgridvisible = false,
     ygridvisible = false,
     #yscale = log10,
-    title = L"\text{a) absolute error}",
-    ylabel = L"\text{estimation error (}\hat{N} - N_\text{true})",
+    title = L"\text{a) error in shift rate}",
+    #ylabel = L"\text{estimation error (}\eta - N_\text{true}/t)",
 )
+    
 ax3 = Axis(
     fig4[2,1],
     xticks = xt,
@@ -209,28 +229,28 @@ ax3 = Axis(
     xgridvisible = false,
     ygridvisible = false,
     #yscale = log10,
-    title = L"\text{b) normalized error}",
+    title = L"\text{b) error in supported shift events}",
     xlabel = L"\text{tree height (Ma)}",
-    ylabel = L"\text{estimation error (}\frac{\hat{N} - N_\text{true}}{t})",
+    #ylabel = L"\text{estimation error (}N^*/t - N_\text{true}/t)",
 )
+
+Label(fig4[1,0], L"\text{estimation error (}\eta - N_\text{true}/t)", rotation = π/2)
+Label(fig4[2,0], L"\text{estimation error (}N^*/t - N_\text{true}/t)", rotation = π/2)
 
 
 for (i, height) in enumerate(heights)
     this_df = filter(:height => h -> h == height, dfx)
 
-    #error = this_df[!,:N_per_time] .- this_df[!,:N_per_time_true]
-    error = this_df[!,:N_total] .- this_df[!,:N_total_true]
+    error = this_df[!,:etaml] .- this_df[!,:N_per_time_true]
     hist!(ax2, error, color = (:black, 0.5), direction = :x, scale_to = 8, offset = height, bins = 20, label = "simulated trees")
 
-    #error_normalized = this_df[!,:N_total] .- this_df[!,:N_total_true]
-    error_normalized = this_df[!,:N_per_time] .- this_df[!,:N_per_time_true]
-    #error_normalized = (this_df[!,:N_total] .- this_df[!,:N_total_true]) ./ this_df[!,:N_total]
+    error_normalized = this_df[!,:support_per_time] .- this_df[!,:N_per_time_true]
     hist!(ax3, error_normalized, color = (:black, 0.5), direction = :x, scale_to = 8, offset = height, bins = 20, label = "simulated trees")
 end
 for ax in (ax2, ax3)
     lines!(ax, [28, 108], [0.0, 0.0], linestyle = :dash, color = :red, label = "zero error")
 end
-axislegend(ax3, unique = true)
+axislegend(ax3, position = :rb, unique = true)
 fig4
 
 save("figures/age_scaling_effect_estimation_error.pdf", fig4)
@@ -247,106 +267,68 @@ scatter(x, y)
 
 error
 
-## plot only the h=30 trees with N total
-
-fig30 = Figure()
-ax = Axis(fig30[1,1], xlabel = "the trees with h=30",
-        ylabel = L"\text{estimation error (}\hat{N}-N_\text{true})")
-
-this_df = filter(:height => h -> h == 30, dfx)
-error = this_df[!,:N_total] .- this_df[!,:N_total_true]
-hist!(ax, error, color = (:black, 0.5), direction = :x, scale_to = 8, bins = 20, label = "simulated trees")
-fig30
-##
-
 
 error = dfx[!,:N_per_time] .- dfx[!,:N_per_time_true]
-
-fig5 = Figure()
-ax = Axis(fig5[1,1],
-        xscale = log10,
-        topspinevisible = false,
-        rightspinevisible = false,
-        xgridvisible = false,
-        ygridvisible = false,
-        xlabel = L"\text{number of tips}",
-        ylabel = L"\text{estimation error (}\frac{\hat{N}-N_\text{true}}{t})")
-scatter!(ax, dfx[!,:ntip], error, color = (:black, 0.3))
-lines!(ax, [extrema(dfx[!,:ntip])...], [0.0, 0.0], linestyle = :dash, color = :red)
-fig5
-
 save("figures/age_scaling_effect_estimation_error_ntip.pdf", fig5)
 
 
 
+fig5 = Figure(size = (500, 500))
+
+xt = [1, 10, 100, 1000, 10_000]
+
+ax1 = Axis(
+    fig5[1,1],
+    xscale = log10,
+    xticks = xt,
+    #xlabel = L"\text{number of tips}",
+    title = L"\text{a) error in shift rate}",
+    xgridvisible = false,
+    ygridvisible = false,
+    topspinevisible = false,
+    rightspinevisible = false,
+    )
+
+ax2 = Axis(
+    fig5[2,1],
+    xscale = log10,
+    xticks = xt,
+    xlabel = L"\text{number of tips}",
+    title = L"\text{b) error in supported shift events}",
+    xgridvisible = false,
+    ygridvisible = false,
+    topspinevisible = false,
+    rightspinevisible = false,
+    )
+
+    
+Label(fig5[1,0], L"\text{estimation error (}\eta - N_\text{true}/t)", rotation = π/2)
+Label(fig5[2,0], L"\text{estimation error (}N^*/t - N_\text{true}/t)", rotation = π/2)
+
+scatter!(
+    ax1,
+    dfx.ntip, 
+    dfx.etaml .- dfx.N_per_time_true,
+    color = (:black, 0.3))
+
+scatter!(
+    ax2,
+    dfx.ntip, 
+    dfx.support_per_time .- dfx.N_per_time_true,
+    color = (:black, 0.3),
+    label = "simulated trees")
 
 
-## regression slopes
-for df1 in (df, df_true)
-    x = df1[!,:height]
-    y = df1[!,:N_per_time]
-
-    β, Varβ, ySE = ols_regression(log.(x), log.(y))
-
-    println(β[2], " ± ", sqrt(Varβ[2,2]))
+for ax in (ax1, ax2)
+    lines!(ax, [extrema(dfx.ntip)...], [0.0, 0.0], linestyle = :dash, color = :red, label = "zero error")
 end
 
+for i in 1:2
+    rowsize!(fig5.layout, i, Relative(0.5))
+end
 
+axislegend(ax2, position = :rb, unique = true)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Makie.hist(df[df[!,:height] .== 30,:N_per_time])
-
-Makie.scatter(df[!,:height], df[!,:N_per_time])
-
-
-
-
-
-
-
-
-
+fig5
+save("figures/age_scaling_effect_estimation_error_ntip.pdf", fig5)
 
