@@ -8,12 +8,19 @@ using Printf
 
 fpaths = Glob.glob("output/empirical_fish_subtrees/rates/*.csv")
 
+number_of_supported = Float64[]
+
 dfs = DataFrame[]
 
 for fpath in fpaths
     df = CSV.read(fpath, DataFrame)
 
     node = parse(Int64, split(replace(Base.basename(fpath), ".csv" => ""), "_")[end])
+    Nstar = sum(df[!,:shift_bf] .> 10)
+    push!(number_of_supported, Nstar)
+
+    #ntip = df[!,:ntips]
+    #push!(ntips, ntip)
 
     df[!,:node] = repeat([node], size(df)[1])
     push!(dfs, df)
@@ -24,12 +31,11 @@ fpaths = Glob.glob("output/empirical_fish_subtrees/jld2/*.jld2")
 
 treeheights = [load(fpath, "treeheight") for fpath in fpaths]
 treelengths = [load(fpath, "treelength") for fpath in fpaths]
+etas = [load(fpath, "etaml") for fpath in fpaths]
 ntips = [load(fpath, "ntip") for fpath in fpaths]
 N = [sum(df[!,:nshift]) for df in dfs]
 
-N_per_time = N ./ treelengths
-
-
+#N_per_time = N ./ treelengths
 
 function lrange(from::Float64, to::Float64, length::Int64 = 6)
     exp.(collect(range(log(from), log(to); length = length)))
@@ -52,7 +58,7 @@ ax1 = Axis(fig[1,1],
     topspinevisible = false,
     title = L"\text{a) full y}\endash \text{axis}",
     titlealign = :left,
-    ylabel = L"\hat{N}/t",
+    #ylabel = L"\eta",
     xlabel = L"\text{tree height (Ma)}",
 )
 
@@ -68,13 +74,12 @@ ax2 = Axis(fig[1,2],
     title = L"\text{b) cut off y}\endash \text{axis}",
     titlealign = :left,
     #title = "cut off y-axis",
-    #ylabel = L"\hat{N}/t",
     xlabel = L"\text{tree height (Ma)}",
 )
 ylims!(ax2, (0.7*1e-3, 2.0))
 
-scatter!(ax1, treeheights, N_per_time, color = :black, markersize = ms)
-scatter!(ax2, treeheights, N_per_time, color = :black, markersize = ms)
+scatter!(ax1, treeheights, etas, color = :black, markersize = ms)
+scatter!(ax2, treeheights, etas, color = :black, markersize = ms)
 
 xt = lrange(30.0, 10000.0, 8)
 xtl = [@sprintf "%2.1f" x for x in xt]
@@ -92,10 +97,10 @@ ax3 = Axis(fig[2,1],
     title = L"\text{c)}",
     titlealign = :left,
     #title = "full y-axis",
-    ylabel = L"\hat{N}/t",
+    #ylabel = L"\eta",
     xlabel = L"\text{number of tips}",
 )
-scatter!(ax3, ntips, N_per_time, color = :black, markersize = ms)
+scatter!(ax3, ntips, etas, color = :black, markersize = ms)
 
 
 ax4 = Axis(fig[2,2],
@@ -110,14 +115,15 @@ ax4 = Axis(fig[2,2],
     title = L"\text{d)}",
     titlealign = :left,
     #title = "cut off y-axis",
-    #ylabel = L"\hat{N}/t",
     xlabel = L"\text{number of tips}",
 )
 ylims!(0.7*1e-3, 2.0)
-scatter!(ax4, ntips, N_per_time, color = :black, markersize = ms)
+scatter!(ax4, ntips, etas, color = :black, markersize = ms)
 
 rowgap!(fig.layout, 7)
 colgap!(fig.layout, 7)
+
+Label(fig[1:2,0], L"\text{shift rate }(\eta)", rotation = π/2)
 
 fig
 
