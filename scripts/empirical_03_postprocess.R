@@ -28,7 +28,7 @@ readNumberOfShifts <- function(name, subdir = "empirical"){
   df10 <- read.csv(fpath) |> as_tibble()
   df11 <- df10 %>%
     #filter(shift_bf > 10, nshift > 0.5)
-    filter(shift_bf > 100)
+    filter(shift_bf > 10)
   number_of_supported <- nrow(df11)
   N_supported <- N[df11$edge,,,drop=FALSE]
   
@@ -46,12 +46,14 @@ readNumberOfShifts <- function(name, subdir = "empirical"){
   phy <- tree@phylo
   height <- max(node.depth.edgelength(phy))
   tl <- sum(phy$edge.length)
+  ntips <- length(phy$tip.label)
   
   df1 <- tibble(
     "name" = name,
     "height" = height,
     "N_total" = Ntotal,
     "treelength" = tl,
+    "ntips" = ntips,
     "muml" = muml,
     "etaml" = etaml,
     "lambdaml" = lambdaml,
@@ -69,6 +71,7 @@ readNumberOfShifts <- function(name, subdir = "empirical"){
     "height" = height,
     "N_total" = sum(N_supported),
     "treelength" = tl,
+    "ntips" = ntips,
     "muml" = muml,
     "etaml" = etaml,
     "lambdaml" = lambdaml,
