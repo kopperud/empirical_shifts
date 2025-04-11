@@ -48,18 +48,18 @@ times = Dict{Tuple{Int64,Int64},Vector{Float64}}()
 mean_shift_rate_fitted = Dict{Tuple{Int64,Int64},Vector{Float64}}()
 mean_shift_rate_true = Dict{Tuple{Int64,Int64},Vector{Float64}}()
 
-@showprogress for (h, i) in keys(models)
-    x, sr_fitted = Pesto.shift_rate_through_time(models_fitted[90,i], datasets[90,i])
+@showprogress for (h, i) in keys(models_fitted)
+    x, sr_fitted = Pesto.shift_rate_through_time(models_fitted[90,i], datasets[90,i]; condition = [])
     times[90,i] = x
     mean_shift_rate_fitted[90,i] = sr_fitted
 
-    x, sr_true = Pesto.shift_rate_through_time(models_true[90,i], datasets[90,i])
+    x, sr_true = Pesto.shift_rate_through_time(models_true[90,i], datasets[90,i]; condition = [])
     times[90,i] = x
     mean_shift_rate_true[90,i] = sr_true
 end
 
 
-for (h, i) in keys(models)
+for (h, i) in keys(models_fitted)
     df = DataFrame(
         "times" => times[90,i], 
         "nshift_fitted" => mean_shift_rate_fitted[90,i], 
@@ -72,32 +72,38 @@ end
 using LaTeXStrings
 using CairoMakie
 
-ps = []
+figs = []
 
-for (h, i) in keys(models)
+for (h, i) in keys(models_true)
     ntip = length(datasets[90,i].tiplab)
     t = times[90,i]
     y_fitted = mean_shift_rate_fitted[90,i]
     η_fitted = models_fitted[90,i].η
 
-    p = plot(t, y_fitted,
-     xflip = true, legend = false, 
-     title = "idx = $i, ntip = $ntip",
-     titlefont = 9,
-     yscale = :log10,
-     grid = false, color = :orange)
-    plot!(p, [extrema(t)...],  [η_fitted, η_fitted], color = :orange, linestyle = :dash)
+    fig1 = Figure()
+
+    ax = Axis(fig1[1,1],
+        xreversed = true, 
+        title = "idx = $i, ntip = $ntip",
+        #yscale = :log10,
+        xgridvisible = false,
+        ygridvisible = false,
+        )
+
+    lines!(ax, [extrema(t)...],  [η_fitted, η_fitted], color = :orange, linestyle = :dash)
 
     y_true = mean_shift_rate_true[90,i]
     η_true = 0.04 / 50.0
-    plot!(p, t, y_true, color = :black)
-    plot!(p, [extrema(t)...],  [η_true, η_true], color = :black, linestyle = :dash)
+    lines!(ax, t, y_true, color = :black)
+    lines!(ax, [extrema(t)...],  [η_true, η_true], color = :black, linestyle = :dash)
 
-    yboth = vcat(y_fitted, y_true)
-    plot!(p, ylims = (minimum(yboth)*0.9,maximum(yboth)*1.1))
+    #yboth = vcat(y_fitted, y_true)
+    #ylims!(ax, (minimum(yboth)*0.9, maximum(yboth)*1.1))
 
-    push!(ps, p)
+    push!(figs, fig1)
 end
+
+figs[10]
 
 for j in 1:10
     r = ((j-1)*25+1):(25+(j-1)*25)
@@ -152,3 +158,38 @@ xlabel = Label(fig[2,1:2], L"\text{mean}(\frac{dN}{dt}(t_i) - \frac{dN}{dt}(t_{i
 
 fig
 
+
+branch_index = 2
+
+Ds, Fs = backwards_forwards_pass(models_true[90,1], datasets[90,1]; condition = []);
+
+branch_index = datasets[90,1].po[end]
+
+
+branch_index = 2339
+
+fig5 = Figure()
+ax1 = Axis(fig5[1,1], title = "category 1")
+ax2 = Axis(fig5[1,2], title = "category 2")
+ax3 = Axis(fig5[1,3], title = "category 3")
+
+for (i, ax) in enumerate((ax1, ax2, ax3))
+    x = Fs[branch_index].t
+    y = [F[i,1] for F in Fs[branch_index].u]
+    plot!(ax, x, y)
+    lines!(ax, x, y, linestyle = :dash, label  = "E(t) preorder")
+
+    x = Ds[branch_index].t
+    y = [D[i,1] for D in Ds[branch_index].u]
+    #plot!(ax, x, y, alpha = 0.5)
+    lines!(ax, x, y, label = "E(t) postorder")
+
+
+end
+
+#axislegend(ax1, position = :rb)
+axislegend(ax2, position = :rb)
+
+linkaxes!(ax1, ax2, ax3)
+
+fig5

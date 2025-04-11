@@ -13,8 +13,8 @@ end
 
 ## load empirical data
 names_selected = [
-    "Actinopterygii", "Mammalia", "Rosidae", "Chondrichthyes", "Squamata", "Asteraceae", 
-    "Agaricomycetes", "Lissamphibia", "Aves", "Polypodiophyta", "Lecanoromycetes", "Cichlidae"
+    "Actinopterygii", "Mammalia", "Rosidae", "Polypodiophyta", "Chondrichthyes", "Squamata", 
+    "Asteraceae", "Agaricomycetes", "Anura", "Aves", "Poaceae", "Lecanoromycetes" 
     ]
 fpaths = Glob.glob("output/empirical/shift_rate_through_time/*.csv")
 dfs_empirical = []
@@ -28,7 +28,7 @@ for fpath in fpaths
     
     if name in names_selected
         if name == "Polypodiophyta"
-            if !occursin("Lehtonen", fpath)
+            if !occursin("Nitta", fpath)
                 continue
             end
         end
@@ -44,11 +44,6 @@ end
 
 dfs_empirical
 names
-
-
-
-
-
 
 
 
@@ -80,6 +75,9 @@ for i in 1:3
                 rightspinevisible = false,
                 xticklabelsize = 9,
                 yticklabelsize = 9)
+        if i > 1
+            hideydecorations!(ax, ticks = false)
+        end
         push!(axs_simulation, ax)
     end
 end
@@ -101,6 +99,9 @@ for j in 1:6
                 yticklabelsize = 9)
         q[1] += 1
 
+        if j > 1
+            hideydecorations!(ax, ticks = false)
+        end
         push!(axs_empirical, ax)
     end
 end
@@ -148,8 +149,8 @@ barplot!(ax_summary,
 )
 
 # Legend
-labels = ["simulated (true par.)", "simulated (estimated par.) ", "empirical (estimated par.)"]
-elements = [PolyElement(polycolor = colors[i]) for i in 1:length(labels)]
+labels = reverse(["simulated (true par.)", "simulated (estimated par.) ", "empirical (estimated par.)"])
+elements = reverse([PolyElement(polycolor = colors[i]) for i in 1:length(labels)])
 title = ""
 Legend(fig[1,2], elements, labels, title, tellheight = true, tellwidth = true, patchsize = (10, 10), labelsize = 7,
         framevisible = false)
@@ -166,13 +167,16 @@ end
 rowgap!(fig.layout, 6)
 
 #Label(fig[1:3,0], L"\text{frequency}", rotation = π/2)
-Label(fig[5:6,0], L"\text{mean shift rate }(\frac{dN}{dt}(t))", rotation = π/2)
-Label(fig[1:3,3], L"\text{mean shift rate }(\frac{dN}{dt}(t))", rotation = π/2)
+Label(fig[5:6,0], L"\text{posterior mean shift rate }(\frac{d\hat{N}}{dt}(t))", rotation = π/2)
+Label(fig[1:3,3], L"\text{posterior mean shift rate }(\frac{d\hat{N}}{dt}(t))", rotation = π/2)
 
 for i in 1:6
     colsize!(fig.layout, i, Relative(1/6.33))
 end
 colsize!(fig.layout,0, Relative(1/18))
+
+linkyaxes!(axs_empirical...)
+linkaxes!(axs_simulation...)
 
 fig
 
