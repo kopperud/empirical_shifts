@@ -137,7 +137,7 @@ for (i in 1:350){
 
 
 ## some quick plots
-fpaths <- Sys.glob("data/simulations/single_shift_grafts/*/119.tre")
+fpaths <- Sys.glob("data/simulations/grafts/*/119.tre")
 tr <- lapply(fpaths, read.tree)
 par(mfrow=c(1,3))
 plot.phylo(tr[[1]], show.tip.label = F, main = paste0("backbone (n=", length(tr[[1]]$tip.label), ")"))
