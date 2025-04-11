@@ -21,14 +21,15 @@ function compute_ratios(name, model, rates)
     Nmatrix = sum(N, dims = 1)[1,:,:]
     nbins = 14
 
-    Ns = zeros(3,nbins)
     filters = ["extinction", "speciation", ""]
-    limits = [-1.2, 1.2]
+    #limits = [-1.2, 1.2]
+    r = model.λ .- model.μ
+    Δr = r .- r'
+    netdiv_extrema = extrema(Δr)
 
     dfs = []
     for (i, filter) in enumerate(filters)
-        mids, bins = makebins(Nmatrix, model, limits...; filter = filter, nbins = nbins)
-        Ns[i,:] = bins[:,3]
+        mids, bins = makebins(Nmatrix, model, netdiv_extrema...; filter = filter, nbins = nbins)
         df = DataFrame(
             "Δr" => bins[:,3],
             "mids" => mids,
@@ -163,7 +164,7 @@ end
 
 
 ax = Axis(fig[1,1], 
-        ylabel = L"N_\text{rate} / N_\text{all}", 
+        ylabel = L"\hat{N}_\text{rate} / \hat{N}_\text{all}", 
         xlabel = L"\text{type of rate shift}",
         xgridvisible = false, 
         ygridvisible = false,
@@ -210,4 +211,4 @@ CairoMakie.rainclouds!(ax, xs .- 0.25, vcat(ratios2...),
 #set_theme!(fig, figure_padding = 0)
 fig
 
-CairoMakie.save("figures/empirical_rate_shift_type.pdf", fig)
+CairoMakie.save("figures/empirical_rate_shift_type_significant.pdf", fig)
