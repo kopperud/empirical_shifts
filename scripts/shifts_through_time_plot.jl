@@ -151,8 +151,11 @@ barplot!(ax_summary,
 # Legend
 labels = reverse(["simulated (true par.)", "simulated (estimated par.) ", "empirical (estimated par.)"])
 elements = reverse([PolyElement(polycolor = colors[i]) for i in 1:length(labels)])
-title = ""
-Legend(fig[1,2], elements, labels, title, tellheight = true, tellwidth = true, patchsize = (10, 10), labelsize = 7,
+title = " "
+Legend(fig[1,2], elements, labels, title, 
+        tellheight = true, tellwidth = true, 
+        patchsize = (10, 10),
+        labelsize = 7,
         framevisible = false)
 
 

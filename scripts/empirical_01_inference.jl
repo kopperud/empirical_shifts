@@ -71,7 +71,8 @@ for fpath in fpaths
     ρ = ρs[basename(fpath)]
     data = SSEdata(phy, ρ);
 
-    optres, model, n_attempts = optimize_hyperparameters(data; n = 10, n_attempts = 100)
+    #optres, model, n_attempts = optimize_hyperparameters(data; n = 10, n_attempts = 100)
+    optres, model, n_attempts = fit_BhDh(data; n = 10, n_attempts = 100)
 
     upper = [0.4, 2.0, 1.0]
 

@@ -60,7 +60,10 @@ kingdom["Polypodiophyta_Nitta2022"] = "Plantae"
 kingdom["Rhopalocera_Kawahara2023"] = "Animalia"
 kingdom["Rosidae_Sun2020"] = "Plantae"
 kingdom["Salvia_Kriebel2019"] = "Plantae"
-kingdom["Squamata_Zheng2016"] = "Animalia"
+#kingdom["Squamata_Zheng2016"] = "Animalia"
+kingdom["Squamata_Title2024"] = "Animalia"
+kingdom["Coenagrionoidea_Willink2024"] = "Animalia"
+kingdom["Anisoptera_Letsch2016"] = "Animalia"
 
 shift_df = DataFrame(
     "log_height" => log10.(df2[!,:height]),
@@ -133,7 +136,7 @@ function plot_panel!(ax, xvar, yvar, ymin, ymax, color)
     ## regression line
     y = linefit.(x)
     CairoMakie.lines!(ax, x, y; 
-                label = "OLS", markersize = 7, 
+                label = "OLS", #markersize = 7, 
                 color = "gray", linestyle = :dash)
 
     ## the points            
@@ -217,6 +220,7 @@ yt2, ytl2 = make_tick_labels(
 ##
 ax3 = Axis(fig1[3,2], 
     xlabel = L"\text{clade age (Ma)}",
+    #title = L"\text{c) slope}=-0.3\pm0.1,\text{ R}^2=33%",
     title = L"\text{c)}",
     titlealign = :left,
     topspinevisible = false,
@@ -227,6 +231,12 @@ ax3 = Axis(fig1[3,2],
     yticks = (yt2, ytl2),
     xticklabelrotation = π/2,
     )
+
+
+
+fig1
+
+
 
 
 ymin = minimum([minimum(shift_df[!,:log_number_of_supported_per_time]), minimum(shift_df[!,:log_eta])])
@@ -287,6 +297,29 @@ end
 rowsize!(fig1.layout, 1, Relative(0.05))
 colsize!(fig1.layout, 1, Relative(0.05))
 colsize!(fig1.layout, 4, Relative(0.21))
+
+## add coefficients
+positions = [
+    log10.((12.5, 500)),
+    log10.((12.5, 1.0)),
+    log10.((12.5, 0.0425)),
+    log10.((12.5, 0.0001)),
+]
+
+labels = [
+    L"\text{}s=0.65\pm0.41,\text{ R}^2=10%",
+    L"\text{}s=0.67\pm0.29,\text{ R}^2=18%",
+    L"\text{}s=-0.79\pm0.30,\text{ R}^2=22%",
+    L"\text{}s=-0.77\pm0.15,\text{ R}^2=52%",
+]
+
+for (ax, pos, label) in zip([ax1, ax2, ax3, ax4], positions, labels)
+    text!(ax, pos[1], pos[2],
+        text = label, 
+        align = (:left, :bottom),
+        fontsize = 9,
+    )
+end
 
 fig1
 
@@ -421,7 +454,31 @@ rowsize!(fig2.layout, 1, Relative(0.05))
 colsize!(fig2.layout, 1, Relative(0.05))
 colsize!(fig2.layout, 4, Relative(0.21))
 
+## add coefficients
+positions = [
+    log10.((0.03, 570)),
+    log10.((0.03, 1.0)),
+    log10.((0.03, 0.0225)),
+    log10.((0.03, 0.0001)),
+]
+
+labels = [
+    L"\text{}s=0.35\pm0.47,\text{ R}^2=3%",
+    L"\text{}s=-0.28\pm0.35,\text{ R}^2=3%",
+    L"\text{}s=1.35\pm0.26,\text{ R}^2=53%",
+    L"\text{}s=0.72\pm0.19,\text{ R}^2=37%",
+]
+
+for (ax, pos, label) in zip([ax1, ax2, ax3, ax4], positions, labels)
+    text!(ax, pos[1], pos[2],
+        text = label, 
+        align = (:left, :bottom),
+        fontsize = 9,
+    )
+end
+
 fig2
+
 
 CairoMakie.save("figures/scatter_netdiv.pdf", fig2)
 
@@ -440,16 +497,18 @@ function aic(m; smallsample = true)
 end
 
 m0 = lm(@formula(log_eta ~ log_height), shift_df)
-m1 = lm(@formula(log_eta ~ log_netdiv), shift_df)
-m2 = lm(@formula(log_eta ~ log_height + log_netdiv), shift_df)
+m1 = lm(@formula(log_eta_times_tl ~ log_height), shift_df)
+#m2 = lm(@formula(log_eta ~ log_height + log_netdiv), shift_df)
+m2 = lm(@formula(log_number_of_supported ~ log_height), shift_df)
+m3 = lm(@formula(log_number_of_supported_per_time ~ log_height), shift_df)
 
 aics = map(aic, [m0, m1, m2])
 delta_aics = [x - minimum(aics) for x in aics]
 
-s = summary(m0)
-m0a = lm(@formula(log_number_of_supported_per_time ~ log_height), shift_df)
-m1a = lm(@formula(log_number_of_supported_per_time ~ log_netdiv), shift_df)
-m2a = lm(@formula(log_number_of_supported_per_time ~ log_height + log_netdiv), shift_df)
+m0a = lm(@formula(log_eta ~ log_netdiv), shift_df)
+m1a = lm(@formula(log_eta_times_tl ~ log_netdiv), shift_df)
+m2a = lm(@formula(log_number_of_supported ~ log_netdiv), shift_df)
+m3a = lm(@formula(log_number_of_supported_per_time ~ log_netdiv), shift_df)
 
 
 

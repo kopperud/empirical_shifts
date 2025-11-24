@@ -75,7 +75,10 @@ kingdom["Polypodiophyta_Nitta2022"] = "Plantae"
 kingdom["Rhopalocera_Kawahara2023"] = "Animalia"
 kingdom["Rosidae_Sun2020"] = "Plantae"
 kingdom["Salvia_Kriebel2019"] = "Plantae"
-kingdom["Squamata_Zheng2016"] = "Animalia"
+#kingdom["Squamata_Zheng2016"] = "Animalia"
+kingdom["Squamata_Title2024"] = "Animalia"
+kingdom["Coenagrionoidea_Willink2024"] = "Animalia"
+kingdom["Anisoptera_Letsch2016"] = "Animalia"
 
 
 df[!,:kingdom] = [kingdom[name] for name in df[!,:name]]
@@ -86,7 +89,7 @@ color = [colormap[k] for k in df.kingdom]
 xt = collect(lrange3(extrema(Float64.(ntips))..., 5))
 yt = collect(lrange3(extrema(shifts)..., 5))
 yt2 = collect(lrange3(extrema(shifts_per_time)..., 5))
-yt3 = collect(lrange(extrema(tips_per_shift)..., 5))
+yt3 = collect(lrange3(extrema(tips_per_shift)..., 5))
 
 fmt = Printf.Format("%.0f")
 xtl = [Printf.format(fmt, x) for x in xt]
@@ -138,7 +141,7 @@ CairoMakie.scatter!(ax1, ntips, shifts;
 x = [extrema(Float64.(ntips))...]
 y = 10 .^(linefit.(log10.(x)))
 CairoMakie.lines!(ax1, x, y; 
-                label = "OLS", markersize = 7, color = "gray", linestyle = :dash)
+                label = "OLS", color = "gray", linestyle = :dash)
 
 
 ## number of rate shifts per time
@@ -177,7 +180,7 @@ CairoMakie.scatter!(ax2, ntips, shifts_per_time;
 x = [extrema(Float64.(ntips))...]
 y = 10 .^(linefit.(log10.(x)))
 CairoMakie.lines!(ax2, x, y; 
-                label = "OLS", markersize = 7, color = "gray", linestyle = :dash)
+                label = "OLS", color = "gray", linestyle = :dash)
 
                
 

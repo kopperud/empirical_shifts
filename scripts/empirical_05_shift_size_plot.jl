@@ -105,7 +105,8 @@ name_subset = [
     "Mammalia_AlvarezCarretero2022",
     "Rosidae_Sun2020",
     "Chondrichthyes_Stein2018",
-    "Squamata_Zheng2016",
+    #"Squamata_Zheng2016",
+    "Squamata_Title2024",
     "Asteraceae_Palazzesi2022",
     "Agaricomycetes_Varga2019",
     "Anura_Portik2023",
@@ -480,7 +481,10 @@ kingdom["Polypodiophyta_Nitta2022"] = "Plantae"
 kingdom["Rhopalocera_Kawahara2023"] = "Animalia"
 kingdom["Rosidae_Sun2020"] = "Plantae"
 kingdom["Salvia_Kriebel2019"] = "Plantae"
-kingdom["Squamata_Zheng2016"] = "Animalia"
+kingdom["Squamata_Title2024"] = "Animalia"
+kingdom["Coenagrionoidea_Willink2024"] = "Animalia"
+kingdom["Anisoptera_Letsch2016"] = "Animalia"
+#kingdom["Squamata_Zheng2016"] = "Animalia"
 
 
 
@@ -488,6 +492,7 @@ kingdom["Squamata_Zheng2016"] = "Animalia"
 rainclouds_datasets = reverse([
     "Actinopterygii_Rabosky2018",
     "Agaricomycetes_Varga2019",
+    "Anisoptera_Letsch2016",
     "Anthophila_HenriquezPiskulich",
     "Anura_Portik2023",
     "Aristolochiaceae_Allio2021",
@@ -495,6 +500,7 @@ rainclouds_datasets = reverse([
     "Aves_Quintero2022",
     "Caryophyllales_Smithetal2017_align_w_shtest_treepl_3samp",
     "Chondrichthyes_Stein2018",
+    "Coenagrionoidea_Willink2024",
     "Cornales_Rose2018",
     "Cycadaceae_Liu2021",
     "Ericales_Rose2018",
@@ -509,7 +515,8 @@ rainclouds_datasets = reverse([
     "Rhopalocera_Kawahara2023",
     "Rosidae_Sun2020",
     "Salvia_Kriebel2019",
-    "Squamata_Zheng2016",
+    #"Squamata_Zheng2016",
+    "Squamata_Title2024",
 ])
 
 colormap = Dict("Animalia" => :gray, "Plantae" => (:green, 0.8), "Fungi" => (:orange, 0.8))
@@ -518,6 +525,7 @@ color = [colormap[kingdom[name]] for name in rainclouds_datasets]
 rainclouds_labels = reverse([
     L"\text{Actinopterygii}",
     L"\text{Agaricomycetes}",
+    L"\text{Anisopteratera}",
     L"\text{Anthophila}",
     L"\text{Anura}",
     L"\text{Aristolochiaceae}",
@@ -525,6 +533,7 @@ rainclouds_labels = reverse([
     L"\text{Aves}",
     L"\text{Caryophyllales}",
     L"\text{Chondrichthyes}",
+    L"\text{Coenagrionoidea}",
     L"\text{Cornales}",
     L"\text{Cycadaceae}",
     L"\text{Ericales}",
@@ -545,8 +554,8 @@ rainclouds_labels = reverse([
 fig2 = Figure(size = (500, 350))
 
 yt = collect(1:length(rainclouds_datasets)/2)
-ytl1 = rainclouds_labels[1:12]
-ytl2 = rainclouds_labels[13:24]
+ytl1 = rainclouds_labels[1:13]
+ytl2 = rainclouds_labels[14:26]
 
 ax1 = Axis(fig2[1,1], 
     #xlabel = L"\text{shift size in net diversification }(\Delta r)", 
@@ -587,7 +596,7 @@ wc = Makie.wong_colors()
 #colors = reverse([:gray, :gray, :gray, :gray, :gray, :gray, wc[3], wc[3], wc[3], wc[3], wc[4], wc[4]])
 cs1 = []
 cs2 = []
-for (i, name) in enumerate(rainclouds_datasets[1:12])
+for (i, name) in enumerate(rainclouds_datasets[1:13])
     for item in shifts[name]
         push!(xs1, i)
         push!(ys1, item)
@@ -595,14 +604,18 @@ for (i, name) in enumerate(rainclouds_datasets[1:12])
     end
 end
 
-for (i, name) in enumerate(rainclouds_datasets[13:24])
+for (i, name) in enumerate(rainclouds_datasets[14:26])
     for item in shifts[name]
         push!(xs2, i)
         push!(ys2, item)
-        push!(cs2, color[13:24][i])
+        push!(cs2, color[14:26][i])
         #push!(cs, colors[i])
     end
 end
+
+
+lines!(ax1, [0.0, 0.0], [0.5, 13.5], linewidth = 0.5, color = :red)
+lines!(ax2, [0.0, 0.0], [0.5, 13.5], linewidth = 0.5, color = :red)
 
 
 rainclouds!(ax2, xs1 .+ 0.25, ys1, 
@@ -645,6 +658,8 @@ for i in 1:2
     colsize!(fig2.layout, i, Relative(0.4))
 end
 colsize!(fig2.layout, 3, Relative(0.2))
+colgap!(fig2.layout, 0)
+
 
 fig2
 
@@ -665,7 +680,8 @@ name_subset2 = [
     "Rosidae_Sun2020",
     "Polypodiophyta_Nitta2022",
     "Chondrichthyes_Stein2018",
-    "Squamata_Zheng2016",
+    #"Squamata_Zheng2016",
+    "Squamata_Title2024",
     "Asteraceae_Palazzesi2022",
     "Agaricomycetes_Varga2019",
     "Anura_Portik2023",
@@ -717,13 +733,23 @@ end
 
 nbins3 = [
     20, 20, 14, 20,
-    2, 6, 20, 4,
+    2, 12, 20, 4,
     7, 14, 10, 10
 ]
 
 for (i, name) in enumerate(name_subset2)
     ax = axs[i]
-    hist!(ax, shifts[name], color = :gray, bins = nbins3[i])
+    #hist!(ax, shifts[name], color = :gray, bins = nbins3[i])
+
+    ## upshifts
+    items = [item for item in shifts[name] if item >= 0.0]
+    hist!(ax, items, color = :gray)
+
+    # downshifts 
+    items = [item for item in shifts[name] if item < 0.0]
+    if !isempty(items)
+        hist!(ax, items, color = :red)
+    end
 end
 
 linkxaxes!(axs[1], axs[5], axs[9])
@@ -750,6 +776,168 @@ rowgap!(fig3.layout, 3)
 fig3
 
 save("figures/fig1_empirical_atomized.pdf", fig3)
+
+## FIGURE 2 BUT WITH DIFFERENT COLORS FOR THE DOWN/upshifts
+## bar plot instead of histogram
+
+boundaries = collect(range(-0.3, 0.3; length = 9))
+
+
+lower, upper = extrema(vcat(
+    shifts["Mammalia_AlvarezCarretero2022"], 
+    shifts["Squamata_Title2024"],
+    shifts["Aves_Quintero2022"],
+    ))
+
+function make_bins(lower, upper, shifts, clade_name, down_bins, up_bins)
+    down = collect(range(lower, 0.0; length = down_bins+1))
+    Δdown = down[2] - down[1]
+    down_mids = [down[i] + Δdown/2.0 for i in 1:down_bins]
+
+    down_y = zeros(down_bins)
+
+    for i in 1:down_bins
+        for item in shifts[clade_name]
+            if item >= down[i]
+                if item < down[i+1]
+                    down_y[i] += 1
+                end
+            end
+        end    
+    end
+
+    up = collect(range(0.0, upper; length = up_bins+1))
+    Δup = up[2] - up[1]
+    up_mids = [up[i] + Δup/2.0 for i in 1:up_bins]
+
+    up_y = zeros(up_bins)
+
+    for i in 1:up_bins
+        for item in shifts[clade_name]
+            if item >= up[i]
+                if item < up[i+1]
+                    up_y[i] += 1
+                end
+            end
+        end    
+    end
+
+    res = ((down_mids, down_y), (up_mids, up_y))
+    #high = collect(range(0.0, upper; length = 4))
+
+    return res
+end
+
+
+#fig = Figure(size = (600, 400))
+
+fig = Figure(size = (480, 280), fontsize = 14, 
+            figure_padding = (1,1,1,1));
+
+names = [
+    "Actinopterygii_Rabosky2018" "Mammalia_AlvarezCarretero2022" "Rosidae_Sun2020" "Polypodiophyta_Nitta2022"
+    "Chondrichthyes_Stein2018" "Squamata_Title2024" "Asteraceae_Palazzesi2022" "Agaricomycetes_Varga2019"
+    "Anura_Portik2023" "Aves_Quintero2022" "Poaceae_Spriggs2015" "Lecanoromycetes_Nelsen2020"
+]
+
+axs = Array{Axis}(undef, (3,4))
+
+for row in 1:3
+    for col in 1:4
+        title = split(names[row, col], "_")[1]
+        ax = Axis(
+            fig[row,col],
+            topspinevisible = false,
+            rightspinevisible = false,
+            xgridvisible = false,
+            ygridvisible = false,
+            title = title,
+            #titlesize = 7,
+            titlesize = 9,
+            xticklabelrotation = π/2,
+            xticklabelsize = 9,
+            yticklabelsize = 9,
+        )
+        if row < 3
+            hidexdecorations!(ax, ticks = false)
+        end
+
+        axs[row,col] = ax
+    end
+end
+
+
+down_bins = [2, 8, 2, 4]
+up_bins = [18, 11, 24, 16]
+up_bins = [
+    18 11 18 16
+    18 11 24 24
+    24 11 24 30
+]
+
+
+for row in 1:3
+    for col in 1:4
+
+    lower, upper = extrema(vcat([shifts[name] for name in names[:,col]]...))
+
+    (down_mids, down_y), (up_mids, up_y) = make_bins(
+        lower, upper, shifts, names[row,col], down_bins[col], up_bins[row, col])
+
+    #down_mids = [x for (x, y) in zip(down_mids, down_y) if y != 0] 
+    #down_y = [y for y in down_y if y != 0] 
+
+    barplot!(axs[row,col], down_mids, down_y, color = :red, strokecolor = :white, strokewidth = 0)
+    barplot!(axs[row,col], up_mids, up_y, color = :gray, strokecolor = :white, strokewidth = 0)
+
+    end
+end
+
+linkxaxes!(axs[:,1]...)
+linkxaxes!(axs[:,2]...)
+linkxaxes!(axs[:,3]...)
+
+ylabel = Label(fig[1:3, 0], L"\text{no. significant rate shift events}", rotation = π/2)
+xlabel = Label(fig[4, 1:4], L"\text{shift size in net diversification }(\Delta r)")
+
+rowgap!(fig.layout, 8)
+colgap!(fig.layout, 8)
+
+
+fig
+
+CairoMakie.save("figures/fig1_empirical_significant_colored.pdf", fig)
+
+fig2 = Figure()
+
+ax = Axis(fig2[1,1])
+
+(down_mids, down_y), (up_mids, up_y) = make_bins(
+    lower, upper, shifts, names[2,1], 1, 4)
+
+mids = vcat(down_mids, up_mids)
+y = vcat(down_y, up_y)
+
+#barplot!(ax, gantt.start, gantt.machine, fillto = gantt.stop, direction = :x, strokecolor = "black", strokewidth = 1)
+barplot!(ax, mids, y, strokecolor = "black", strokewidth = 1)
+#downshifts = [item for item in shifts["Mammalia_AlvarezCarretero2022"] if item < 0.0]
+#upshifts = [item for item in shifts["Mammalia_AlvarezCarretero2022"] if item > 0.0]
+#hist!(ax, downshifts, color = :red, strokecolor = :black)
+#hist!(ax, upshifts, color = :gray, strokecolor = :black)
+
+fig2
+
+
+
+y
+
+
+
+
+
+
+shifts["Anura_Portik2023"]
+
 
 
 

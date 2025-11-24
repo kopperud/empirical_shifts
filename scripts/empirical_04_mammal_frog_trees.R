@@ -18,8 +18,11 @@ setwd("~/projects/empirical_shifts/")
 tree1 <- read.beast.newick("output/empirical/newick/Mammalia_AlvarezCarretero2022.tre")
 tree2 <- read.beast.newick("output/empirical/newick/Anura_Portik2023.tre")
 
-mammal_supported_nodes <- as.numeric(tree1@data[tree1@data$shift_bf > 10,][["node"]])
-frog_supported_nodes <- as.numeric(tree2@data[tree2@data$shift_bf > 10,][["node"]])
+mammal_supported_upshifts <- as.numeric(tree1@data[tree1@data$shift_bf > 10 & tree1@data$delta_netdiv > 0,][["node"]])
+mammal_supported_downshifts <- as.numeric(tree1@data[tree1@data$shift_bf > 10 & tree1@data$delta_netdiv < 0,][["node"]])
+#mammal_supported_nodes <- as.numeric(tree1@data[tree1@data$shift_bf > 10,][["node"]])
+frog_supported_upshifts <- as.numeric(tree2@data[tree2@data$shift_bf > 10 & tree2@data$delta_netdiv > 0,][["node"]])
+frog_supported_downshifts <- as.numeric(tree2@data[tree2@data$shift_bf > 10 & tree2@data$delta_netdiv < 0,][["node"]])
 
 
 ################################################################
@@ -64,7 +67,8 @@ p1 <- revts(ggtree(tree1, aes(color = mean_netdiv), linewidth = 0.2)) +
                                               guide_axis(),
                                               spacing = unit(0, "line"))) +
   scale_y_continuous(guide = NULL, expand = expansion(mult = c(0.01, 0.01))) + 
-  geom_point2(aes(subset=(node %in% mammal_supported_nodes)), size = 1.5, color = "black", fill = dot_color, shape = 21, stroke = 0.5) +
+  geom_point2(aes(subset=(node %in% mammal_supported_upshifts)), size = 1.5, color = "black", fill = dot_color, shape = 21, stroke = 0.5) +
+  geom_point2(aes(subset=(node %in% mammal_supported_downshifts)), size = 1.5, color = "black", fill = "lightgray", shape = 21, stroke = 0.5) +
   ggtitle("Mammalia") +
   scale_colour_gradient(
     name = "", 
@@ -91,7 +95,8 @@ p2 <- revts(ggtree(tree2, aes(color = mean_netdiv), layout = "circular", linewid
                                               guide_axis(),
                                               spacing = unit(0, "line"))) +
   scale_y_continuous(guide = NULL, expand = expansion(mult = c(0.01, 0.01))) + 
-  geom_point2(aes(subset=(node %in% frog_supported_nodes)), size = 1.5, color = "black", fill = dot_color, shape = 21, stroke = 0.5) +
+  geom_point2(aes(subset=(node %in% frog_supported_upshifts)), size = 1.5, color = "black", fill = dot_color, shape = 21, stroke = 0.5) +
+  geom_point2(aes(subset=(node %in% frog_supported_downshifts)), size = 1.5, color = "black", fill = "lightgray", shape = 21, stroke = 0.5) +
   ggtitle("Anura") +
   scale_colour_gradient(
     name = "", 

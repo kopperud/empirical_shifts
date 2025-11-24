@@ -28,7 +28,7 @@ for (i in 1:nrow(df)){
     cat(cite_label)
     if (df$Clade[i] == "Aves"){
       #cat("$^*$")
-      cat("\footnote{We obtained the phylogeny tree file from \cite{quintero2022macroevolutionary}, however the analysis of inferring the phylogeny was conducted by \cite{Jetz2012}.}")
+      cat("\footnote{We obtained the phylogeny tree file from \\cite{quintero2022macroevolutionary}, however the analysis of inferring the phylogeny was conducted by \\cite{Jetz2012}.}")
     }
     cat("  \t &  ")
     cat(format(df$Root.age[i], digits = 1))
